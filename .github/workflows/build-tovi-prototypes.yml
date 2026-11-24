@@ -1,0 +1,87 @@
+name: Build TOVI Design Prototypes
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'design-references/tovi-interactive-prototype.zip'
+      - 'design-references/tovi-less-vibecoded-design.zip'
+      - '.github/workflows/build-tovi-prototypes.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build-prototypes:
+    name: Build both prototype APKs in sequence
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out TOVI repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Build interactive prototype
+        id: interactive
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p /tmp/tovi-interactive
+          unzip -q design-references/tovi-interactive-prototype.zip -d /tmp/tovi-interactive
+          cd /tmp/tovi-interactive
+          find . -maxdepth 3 -type f | sort
+          gradle --no-daemon assembleDebug
+          mkdir -p "$GITHUB_WORKSPACE/prototype-output/interactive"
+          find app/build/outputs/apk -type f -name '*.apk' -exec cp {} "$GITHUB_WORKSPACE/prototype-output/interactive/TOVI-interactive-prototype-debug.apk" \;
+
+      - name: Upload interactive prototype APK
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: TOVI-interactive-prototype
+          path: prototype-output/interactive/*.apk
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Build less-vibecoded prototype
+        id: less-vibecoded
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p /tmp/tovi-less-vibecoded
+          unzip -q design-references/tovi-less-vibecoded-design.zip -d /tmp/tovi-less-vibecoded
+          cd /tmp/tovi-less-vibecoded
+          find . -maxdepth 3 -type f | sort
+          gradle --no-daemon assembleDebug
+          mkdir -p "$GITHUB_WORKSPACE/prototype-output/less-vibecoded"
+          find app/build/outputs/apk -type f -name '*.apk' -exec cp {} "$GITHUB_WORKSPACE/prototype-output/less-vibecoded/TOVI-less-vibecoded-debug.apk" \;
+
+      - name: Upload less-vibecoded prototype APK
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: TOVI-less-vibecoded-prototype
+          path: prototype-output/less-vibecoded/*.apk
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Report build outcomes
+        if: always()
+        run: |
+          echo "Interactive prototype build outcome: ${{ steps.interactive.outcome }}"
+          echo "Less-vibecoded prototype build outcome: ${{ steps.less-vibecoded.outcome }}"
