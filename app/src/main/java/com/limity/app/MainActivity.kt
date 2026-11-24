@@ -54,6 +54,7 @@ class MainActivity : ComponentActivity() {
             var chosen by remember { mutableStateOf(prefs.getStringSet("selected_apps", emptySet())?.toSet() ?: emptySet()) }
             var limit by remember { mutableFloatStateOf(prefs.getInt("daily_tokens", 120).toFloat()) }
             var accentIndex by remember { mutableIntStateOf(prefs.getInt("accent_index", 0)) }
+            var pauseSeconds by remember { mutableIntStateOf(prefs.getInt("pause_seconds", 5)) }
             var tab by remember { mutableIntStateOf(0) }
             var refreshKey by remember { mutableIntStateOf(0) }
             DisposableEffect(lifecycle) {
@@ -96,8 +97,9 @@ class MainActivity : ComponentActivity() {
                             0 -> HomePage(prefs.getInt("tokens_remaining", limit.toInt()), prefs.getInt("daily_tokens", limit.toInt()), UsageLedger.totalSeconds(this@MainActivity), UsageLedger.selectedAppSeconds(this@MainActivity, chosen), accent, apps.filter { it.pkg in chosen }, Modifier.padding(pad), refreshKey)
                             1 -> AppsPage(apps.filter { it.pkg in chosen }, { setup = true }, Modifier.padding(pad))
                             2 -> InsightsPage(this@MainActivity, chosen, apps, refreshKey, Modifier.padding(pad))
-                            else -> SettingsPage(limit, accentIndex, accents, { limit = it; prefs.edit().putInt("daily_tokens", it.toInt()).apply() },
-                                { accentIndex = it; prefs.edit().putInt("accent_index", it).apply() }, Modifier.padding(pad))
+                            else -> SettingsPage(limit, accentIndex, accents, pauseSeconds, { limit = it; prefs.edit().putInt("daily_tokens", it.toInt()).apply() },
+                                { accentIndex = it; prefs.edit().putInt("accent_index", it).apply() },
+                                { pauseSeconds = it; prefs.edit().putInt("pause_seconds", it).apply() }, Modifier.padding(pad))
                         }
                     }
                 }
@@ -311,8 +313,9 @@ private fun SimplePage(title: String, description: String, modifier: Modifier = 
 
 @Composable
 private fun SettingsPage(
-    limit: Float, selected: Int, accents: List<Color>, onLimit: (Float) -> Unit,
-    onAccent: (Int) -> Unit, modifier: Modifier = Modifier
+    limit: Float, selected: Int, accents: List<Color>, pauseSeconds: Int,
+    onLimit: (Float) -> Unit, onAccent: (Int) -> Unit,
+    onPauseSeconds: (Int) -> Unit, modifier: Modifier = Modifier
 ) {
     val names = listOf("Sage", "Blue", "Purple", "Orange", "Rose", "Teal")
     Page(modifier) {
@@ -320,6 +323,14 @@ private fun SettingsPage(
         SetupCard("Daily allowance", "1 token represents one minute of selected-app use.")
         Text("${limit.toInt()} tokens per day", color = Ink, fontSize = 25.sp, fontWeight = FontWeight.Bold)
         Slider(value = limit, onValueChange = onLimit, valueRange = 15f..600f, steps = 38)
+        Text("INTERVENTION PAUSE", color = Muted, fontSize = 11.sp, letterSpacing = 1.sp)
+        SetupCard("Take a moment before deciding", "TOVI gives you a short pause before the continue option becomes available.")
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+            listOf(3, 5, 10).forEach { seconds ->
+                FilterChip(selected = pauseSeconds == seconds, onClick = { onPauseSeconds(seconds) },
+                    label = { Text("$seconds sec") }, modifier = Modifier.weight(1f))
+            }
+        }
         Text("APP ACCENT COLOUR", color = Muted, fontSize = 11.sp, letterSpacing = 1.sp)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             accents.forEachIndexed { i, color ->
