@@ -81,7 +81,7 @@ async function loadReleases() {
   }
 }
 const menuButton = document.querySelector(".menu");
-const nav = $("site-nav");
+const nav = $("nav");
 menuButton?.addEventListener("click", () => {
   const open = nav.classList.toggle("open");
   menuButton.setAttribute("aria-expanded", String(open));
