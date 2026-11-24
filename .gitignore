@@ -1,0 +1,26 @@
+# Gradle
+.gradle/
+**/build/
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+local.properties
+.cxx/
+.externalNativeBuild/
+
+# Signing material and local secrets
+*.jks
+*.keystore
+keystore.properties
+secrets.properties
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Local APKs and bundles
+*.apk
+*.aab
