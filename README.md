@@ -4,7 +4,7 @@
 
 TOVI is a digital-wellbeing project built around a simple idea: your attention belongs to you. The Android app is being developed to help people set intentional limits around selected apps, understand their usage, and make more room for life beyond the screen.
 
- > **Development status:** working early Android build. First-run onboarding, installed-app selection, the accessibility-based pause screen, a five-minute continue choice, and minute-based token deduction during a continued session are implemented. This is an early test build and still needs device testing and refinement.
+ > **Development status:** active Android development. First-run onboarding, selected-app monitoring, foreground-time accounting, daily token reset, an allowance-aware intervention, a five-minute intentional continuation, a live Home summary, and seven-day usage insights are now implemented in the development branch on `main`. This is not yet a release: notifications, richer scheduling, data export, accessibility review, and real-device validation remain in progress.
 
 ## The TOVI approach
 
@@ -46,7 +46,7 @@ The planned reminder points are 25%, 50%, 75%, 90%, and 100% of the daily allowa
 | Usage insights and history | Planned |
 | Privacy, accessibility, and release review | Planned |
 
-TOVI asks the user to enable its Accessibility service manually in Android Settings. The service detects foreground app changes for the apps selected during setup and displays a full-screen pause overlay. If the user chooses to continue for five minutes, TOVI deducts one token per minute while that selected app remains in the foreground, then shows the pause again. Choosing Go back returns to the Home screen. The service does not inspect screen text, messages, photos, or keystrokes. This is an early implementation: strict lockout, richer usage history, notifications, and extensive OEM/device testing remain outstanding.
+TOVI asks the user to enable its Accessibility service manually in Android Settings. The service detects foreground changes for selected apps, records foreground seconds locally, and converts each accumulated minute into one token. The pause overlay appears when a selected app opens. A five-minute continuation is available while tokens remain; time on the pause screen itself is not counted. When the allowance reaches zero, the selected app is paused with no continue option until the next local-day reset. Home and Insights read the local usage ledger. The service does not inspect screen text, messages, photos, or keystrokes. Android OEM background restrictions and overlay behavior still require real-device validation.
 
 ## Technology
 
