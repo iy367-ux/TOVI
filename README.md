@@ -71,3 +71,24 @@ Limity will request only the permissions needed for its wellbeing features and e
 ---
 
 Made to help you spend your time on what matters.
+
+
+## TOVI brand and website
+
+The product brand is now **TOVI** — “Time, on your terms.” The official website source lives in this repository:
+
+- `index.html` — responsive TOVI website
+- `assets/css/style.css` — visual system (Manrope + DM Sans; 60/30/10 palette)
+- `assets/js/main.js` — live GitHub Releases download feed
+- `assets/tovi-mark.svg` — geometric brand mark and favicon
+- `.github/workflows/pages.yml` — automatic GitHub Pages deployment
+
+The download centre reads the public GitHub Releases API for this repository, lists the latest stable release and recent release history, and refreshes every five minutes. It will show an honest “no release yet” state until an official release with an APK asset is published.
+
+### Enable the website
+
+In the repository, open **Settings → Pages**, set **Build and deployment → Source** to **GitHub Actions**, and save. The workflow will then deploy the site on website-related pushes to `main`.
+
+Expected site URL: https://iy367-ux.github.io/Limity/
+
+Note: the Android application is still in early development. The website describes the planned token and wellbeing experience but does not claim that unfinished monitoring or blocking features are already available.
