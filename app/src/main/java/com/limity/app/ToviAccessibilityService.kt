@@ -171,16 +171,18 @@ class ToviAccessibilityService : AccessibilityService() {
         card.addView(space(16))
         card.addView(label(if (exhausted) "Your allowance resets tomorrow." else "$remaining tokens left today", 13f, Color.rgb(131, 201, 157), true))
         card.addView(space(22))
+        val pauseSeconds = prefs.getInt("pause_seconds", 5).coerceIn(0, 30)
+        var continueButton: Button? = null
         val back = actionButton(if (exhausted) "Back to my day" else "Go back", Color.rgb(131, 201, 157), Color.rgb(16, 25, 19))
         card.addView(back, matchWidth())
         if (!exhausted) {
             card.addView(space(10))
-            val pauseSeconds = prefs.getInt("pause_seconds", 5).coerceIn(0, 30)
-            val continueButton = actionButton(if (pauseSeconds > 0) "Pause for ${pauseSeconds}s" else "Continue for 5 minutes", Color.rgb(54, 70, 59), Color.WHITE)
-            continueButton.isEnabled = pauseSeconds == 0
-            card.addView(continueButton, matchWidth())
-            continueButton.setOnClickListener {
-                if (!continueButton.isEnabled) return@setOnClickListener
+            val continueAction = actionButton(if (pauseSeconds > 0) "Pause for ${pauseSeconds}s" else "Continue for 5 minutes", Color.rgb(54, 70, 59), Color.WHITE)
+            continueButton = continueAction
+            continueAction.isEnabled = pauseSeconds == 0
+            card.addView(continueAction, matchWidth())
+            continueAction.setOnClickListener {
+                if (!continueAction.isEnabled) return@setOnClickListener
                 removeIntervention()
                 allowedUntil = SystemClock.elapsedRealtime() + 5 * 60 * 1000L
                 sessionPackage = pkg
@@ -221,11 +223,11 @@ class ToviAccessibilityService : AccessibilityService() {
                         secondsLeft--
                         if (overlay == null) return
                         if (secondsLeft <= 0) {
-                            continueButton.isEnabled = true
-                            continueButton.text = "Continue for 5 minutes"
+                            continueButton?.isEnabled = true
+                            continueButton?.text = "Continue for 5 minutes"
                             countdownRunnable = null
                         } else {
-                            continueButton.text = "Pause for ${secondsLeft}s"
+                            continueButton?.text = "Pause for ${secondsLeft}s"
                             handler.postDelayed(this, 1000L)
                         }
                     }
