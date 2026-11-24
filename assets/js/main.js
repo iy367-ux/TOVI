@@ -80,7 +80,7 @@ async function loadReleases() {
     button.disabled = false;
   }
 }
-const menuButton = document.querySelector(".menu-toggle");
+const menuButton = document.querySelector(".menu");
 const nav = $("site-nav");
 menuButton?.addEventListener("click", () => {
   const open = nav.classList.toggle("open");
