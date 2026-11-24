@@ -96,7 +96,7 @@ class ToviAccessibilityService : AccessibilityService() {
             UsageLedger.addForegroundSeconds(this, pkg, elapsed)
             sessionStartedAt = now
             maybeShowMilestone()
-            if (UsageLedger.remainingTokens(this) <= 0 && SystemClock.elapsedRealtime() >= allowedUntil) {
+            if (UsageLedger.remainingTokens(this) <= 0) {
                 allowedUntil = 0L
                 lastIntervenedPackage = null
                 if (overlay == null) showIntervention(pkg)
