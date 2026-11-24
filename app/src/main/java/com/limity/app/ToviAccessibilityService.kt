@@ -40,6 +40,7 @@ class ToviAccessibilityService : AccessibilityService() {
         val pkg = event?.packageName?.toString() ?: return
         if (pkg == packageName) return
         selectedPackages = prefs.getStringSet("selected_apps", emptySet())?.toSet() ?: emptySet()
+        resetAllowanceIfNewDay()
         activePackage = pkg
         if (pkg !in selectedPackages) {
             lastIntervenedPackage = null
