@@ -18,8 +18,8 @@ jobs:
           mkdir -p extracted/v1.5 extracted/v2.0
           unzip -q design-references/tovi-interactive-prototype.zip -d extracted/v1.5
           unzip -q design-references/tovi-less-vibecoded-design.zip -d extracted/v2.0
-          echo "Extracting v1.5 source for functional integration"
-          echo "=== v1.5 files ===
+          echo "v1.5 source extraction for functional integration"
+          echo "=== v1.5 files ==="
           find extracted/v1.5 -type f -maxdepth 10 -print
           echo "=== v2.0 files ==="
           find extracted/v2.0 -type f -maxdepth 10 -print
