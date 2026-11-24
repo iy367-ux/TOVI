@@ -25,9 +25,6 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
@@ -42,7 +39,6 @@ jobs:
           mkdir -p /tmp/tovi-interactive
           unzip -q design-references/tovi-interactive-prototype.zip -d /tmp/tovi-interactive
           cd /tmp/tovi-interactive
-          find . -maxdepth 3 -type f | sort
           gradle --no-daemon assembleDebug
           mkdir -p "$GITHUB_WORKSPACE/prototype-output/interactive"
           find app/build/outputs/apk -type f -name '*.apk' -exec cp {} "$GITHUB_WORKSPACE/prototype-output/interactive/TOVI-interactive-prototype-debug.apk" \;
@@ -53,7 +49,7 @@ jobs:
         with:
           name: TOVI-interactive-prototype
           path: prototype-output/interactive/*.apk
-          if-no-files-found: warn
+          if-no-files-found: error
           retention-days: 14
 
       - name: Build less-vibecoded prototype
@@ -66,7 +62,6 @@ jobs:
           mkdir -p /tmp/tovi-less-vibecoded
           unzip -q design-references/tovi-less-vibecoded-design.zip -d /tmp/tovi-less-vibecoded
           cd /tmp/tovi-less-vibecoded
-          find . -maxdepth 3 -type f | sort
           gradle --no-daemon assembleDebug
           mkdir -p "$GITHUB_WORKSPACE/prototype-output/less-vibecoded"
           find app/build/outputs/apk -type f -name '*.apk' -exec cp {} "$GITHUB_WORKSPACE/prototype-output/less-vibecoded/TOVI-less-vibecoded-debug.apk" \;
@@ -77,7 +72,7 @@ jobs:
         with:
           name: TOVI-less-vibecoded-prototype
           path: prototype-output/less-vibecoded/*.apk
-          if-no-files-found: warn
+          if-no-files-found: error
           retention-days: 14
 
       - name: Report build outcomes
