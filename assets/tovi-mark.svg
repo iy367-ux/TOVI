@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="TOVI symbol">
+  <rect width="100" height="100" rx="25" fill="#83C99D"/>
+  <path d="M31 17h25c18 0 29 12 29 29S74 75 56 75H44c-13 0-22-8-22-20" fill="none" stroke="#101512" stroke-width="9" stroke-linecap="round"/>
+  <path d="M69 83H44c-18 0-29-12-29-29s11-29 29-29" fill="none" stroke="#101512" stroke-width="9" stroke-linecap="round"/>
+  <path d="M42 39v22m16-22v22" stroke="#101512" stroke-width="7" stroke-linecap="round"/>
+</svg>
