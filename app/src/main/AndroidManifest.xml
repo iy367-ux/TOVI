@@ -8,7 +8,6 @@
         android:label="TOVI"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Material.Light.NoActionBar">
-        <activity android:name=".InterventionActivity" android:exported="false" android:excludeFromRecents="true" android:launchMode="singleTop" />
         <activity android:name=".MainActivity" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
