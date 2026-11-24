@@ -4,7 +4,7 @@
 
 TOVI is a digital-wellbeing project built around a simple idea: your attention belongs to you. The Android app is being developed to help people set intentional limits around selected apps, understand their usage, and make more room for life beyond the screen.
 
- > **Development status:** active Android development. First-run onboarding, selected-app monitoring, foreground-time accounting, daily token reset, an allowance-aware intervention, a five-minute intentional continuation, a live Home summary, and seven-day usage insights are now implemented in the development branch on `main`. This is not yet a release: notifications, richer scheduling, data export, accessibility review, and real-device validation remain in progress.
+ > **Development status:** active Android development. First-run onboarding, selected-app monitoring, foreground-time accounting, daily token reset, an allowance-aware intervention with a configurable pause and breathing animation, a five-minute intentional continuation, a live Home summary, and seven-day usage insights are now implemented in the development branch on `main`. This is not yet a release: notifications, richer scheduling, data export, accessibility review, and real-device validation remain in progress.
 
 ## The TOVI approach
 
@@ -38,15 +38,15 @@ The planned reminder points are 25%, 50%, 75%, 90%, and 100% of the daily allowa
 | Daily allowance setting saved locally | Available |
 | Accent colour selection saved locally | Available |
 | Shortcut to Android usage-access settings | Available |
-| Monitored-app selection | Planned |
-| Foreground usage tracking | Planned |
-| Token deduction and daily reset | Planned |
-| Milestone notifications | Planned |
-| Blocking when allowance is exhausted | Planned |
-| Usage insights and history | Planned |
+| Monitored-app selection | Available |
+| Foreground usage tracking | Available; requires real-device validation |
+| Token deduction and daily reset | Available |
+| Milestone notifications | Recorded locally; notifications pending |
+| Blocking when allowance is exhausted | Available; OEM validation pending |
+| Usage insights and seven-day history | Available |
 | Privacy, accessibility, and release review | Planned |
 
-TOVI asks the user to enable its Accessibility service manually in Android Settings. The service detects foreground changes for selected apps, records foreground seconds locally, and converts each accumulated minute into one token. The pause overlay appears when a selected app opens. A five-minute continuation is available while tokens remain; time on the pause screen itself is not counted. When the allowance reaches zero, the selected app is paused with no continue option until the next local-day reset. Home and Insights read the local usage ledger. The service does not inspect screen text, messages, photos, or keystrokes. Android OEM background restrictions and overlay behavior still require real-device validation.
+TOVI asks the user to enable its Accessibility service manually in Android Settings. The service detects foreground changes for selected apps, records foreground seconds locally, and converts each accumulated minute into one token. The pause overlay appears when a selected app opens. A configurable 3-, 5-, or 10-second pause precedes a five-minute continuation while tokens remain; the intervention includes a gentle breathing animation, and time on the pause screen itself is not counted. When the allowance reaches zero, the selected app is paused with no continue option until the next local-day reset. Home and Insights read the local usage ledger. The service does not inspect screen text, messages, photos, or keystrokes. Android OEM background restrictions and overlay behavior still require real-device validation.
 
 ## Technology
 
