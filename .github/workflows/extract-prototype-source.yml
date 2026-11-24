@@ -1,0 +1,29 @@
+name: Extract TOVI prototype source
+on:
+  push:
+    paths:
+      - '.github/workflows/extract-prototype-source.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extract both source projects
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p extracted/v1.5 extracted/v2.0
+          unzip -q design-references/tovi-interactive-prototype.zip -d extracted/v1.5
+          unzip -q design-references/tovi-less-vibecoded-design.zip -d extracted/v2.0
+          echo "=== v1.5 files ==="
+          find extracted/v1.5 -type f -maxdepth 10 -print
+          echo "=== v2.0 files ==="
+          find extracted/v2.0 -type f -maxdepth 10 -print
+      - uses: actions/upload-artifact@v4
+        with:
+          name: TOVI-prototype-source
+          path: extracted/
+          retention-days: 7
