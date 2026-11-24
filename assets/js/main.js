@@ -1,5 +1,5 @@
 const OWNER = "iy367-ux";
-const REPO = "Limity";
+const REPO = "TOVI";
 const RELEASES_API = `https://api.github.com/repos/${OWNER}/${REPO}/releases`;
 const RELEASES_PAGE = `https://github.com/${OWNER}/${REPO}/releases`;
 const $ = (id) => document.getElementById(id);
