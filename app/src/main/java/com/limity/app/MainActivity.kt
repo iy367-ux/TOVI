@@ -75,7 +75,7 @@ private fun Page(modifier: Modifier = Modifier, content: @Composable ColumnScope
 private fun HomeScreen(tokens: Int, accent: Color, modifier: Modifier = Modifier) {
     Page(modifier) {
         Column {
-            Text("limity.", fontSize = 32.sp, fontWeight = FontWeight.Bold, color = Color.White)
+            Text("tovi.", fontSize = 32.sp, fontWeight = FontWeight.Bold, color = Color.White)
             Text("MAKE TIME COUNT.", fontSize = 10.sp, letterSpacing = 2.sp, color = Muted)
         }
         Card(colors = CardDefaults.cardColors(containerColor = SurfaceDark), shape = RoundedCornerShape(24.dp)) {
@@ -105,12 +105,12 @@ private fun HomeScreen(tokens: Int, accent: Color, modifier: Modifier = Modifier
 private fun AppsScreen(modifier: Modifier = Modifier, onUsageSettings: () -> Unit) {
     Page(modifier) {
         Text("Your apps", color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Bold)
-        Text("Choose which apps Limity should manage. App selection and live tracking are coming next.", color = Muted)
+        Text("Choose which apps TOVI should manage. App selection and live tracking are coming next.", color = Muted)
         Card(colors = CardDefaults.cardColors(containerColor = SurfaceDark)) {
             Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Icon(Icons.Default.Security, tint = Color(0xFF83C99D), contentDescription = null)
                 Text("Usage access", color = Color.White, fontWeight = FontWeight.SemiBold)
-                Text("Android requires your permission before Limity can read app usage.", color = Muted, fontSize = 13.sp)
+                Text("Android requires your permission before TOVI can read app usage.", color = Muted, fontSize = 13.sp)
                 Button(onClick = onUsageSettings) { Text("Open usage access settings") }
             }
         }
@@ -156,7 +156,7 @@ private fun SettingsScreen(
         Card(colors = CardDefaults.cardColors(containerColor = SurfaceDark), shape = RoundedCornerShape(20.dp)) {
             Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 Text("APP ACCENT COLOUR", color = Muted, fontSize = 11.sp, letterSpacing = 1.sp)
-                Text("Make Limity yours.", color = Color.White, fontSize = 18.sp)
+                Text("Make TOVI yours.", color = Color.White, fontSize = 18.sp)
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     accents.forEachIndexed { index, color ->
                         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(5.dp)) {
