@@ -17,6 +17,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -53,6 +55,14 @@ class MainActivity : ComponentActivity() {
             var limit by remember { mutableFloatStateOf(prefs.getInt("daily_tokens", 120).toFloat()) }
             var accentIndex by remember { mutableIntStateOf(prefs.getInt("accent_index", 0)) }
             var tab by remember { mutableIntStateOf(0) }
+            var refreshKey by remember { mutableIntStateOf(0) }
+            DisposableEffect(lifecycle) {
+                val observer = LifecycleEventObserver { _, event ->
+                    if (event == Lifecycle.Event.ON_RESUME) refreshKey++
+                }
+                lifecycle.addObserver(observer)
+                onDispose { lifecycle.removeObserver(observer) }
+            }
             val accents = listOf(Color(0xFF83C99D), Color(0xFF6BA9E8), Color(0xFFA78BFA), Color(0xFFF0A36B), Color(0xFFE88BA5), Color(0xFF55C8BE))
             val accent = accents[accentIndex.coerceIn(0, accents.lastIndex)]
             MaterialTheme(colorScheme = darkColorScheme(primary = accent, background = Bg, surface = Panel, onSurface = Ink, secondary = Muted)) {
@@ -83,9 +93,9 @@ class MainActivity : ComponentActivity() {
                         }
                     }) { pad ->
                         when (tab) {
-                            0 -> HomePage(limit.toInt(), accent, apps.filter { it.pkg in chosen }, Modifier.padding(pad))
+                            0 -> HomePage(prefs.getInt("tokens_remaining", limit.toInt()), prefs.getInt("daily_tokens", limit.toInt()), UsageLedger.totalSeconds(this@MainActivity), UsageLedger.selectedAppSeconds(this@MainActivity, chosen), accent, apps.filter { it.pkg in chosen }, Modifier.padding(pad), refreshKey)
                             1 -> AppsPage(apps.filter { it.pkg in chosen }, { setup = true }, Modifier.padding(pad))
-                            2 -> SimplePage("Your insights", "Your TOVI journey starts here. As you use the app, your screen-time patterns and progress can build here.", Modifier.padding(pad))
+                            2 -> InsightsPage(this@MainActivity, chosen, apps, refreshKey, Modifier.padding(pad))
                             else -> SettingsPage(limit, accentIndex, accents, { limit = it; prefs.edit().putInt("daily_tokens", it.toInt()).apply() },
                                 { accentIndex = it; prefs.edit().putInt("accent_index", it).apply() }, Modifier.padding(pad))
                         }
@@ -184,7 +194,12 @@ private fun Page(modifier: Modifier = Modifier, content: @Composable ColumnScope
 }
 
 @Composable
-private fun HomePage(tokens: Int, accent: Color, apps: List<AppEntry>, modifier: Modifier = Modifier) {
+private fun HomePage(
+    remaining: Int, daily: Int, usedSeconds: Long, appSeconds: Map<String, Long>,
+    accent: Color, apps: List<AppEntry>, modifier: Modifier = Modifier, refreshKey: Int
+) {
+    val usedMinutes = (usedSeconds / 60L).toInt()
+    val progress = (usedMinutes.toFloat() / daily.coerceAtLeast(1)).coerceIn(0f, 1f)
     Page(modifier) {
         Column {
             Text("Make today count.", color = Ink, fontSize = 29.sp, fontWeight = FontWeight.Bold)
@@ -194,30 +209,78 @@ private fun HomePage(tokens: Int, accent: Color, apps: List<AppEntry>, modifier:
             Column(Modifier.padding(21.dp), verticalArrangement = Arrangement.spacedBy(11.dp)) {
                 Text("TIME LEFT TODAY", color = Muted, fontSize = 10.sp, letterSpacing = 1.5.sp)
                 Row(verticalAlignment = Alignment.Bottom) {
-                    Text("$tokens", color = Ink, fontSize = 43.sp, fontWeight = FontWeight.Bold)
+                    Text("$remaining", color = Ink, fontSize = 43.sp, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.width(8.dp)); Text("tokens", color = accent, modifier = Modifier.padding(bottom = 7.dp))
                 }
-                LinearProgressIndicator(progress = { 1f }, modifier = Modifier.fillMaxWidth().height(7.dp).clip(CircleShape), color = accent, trackColor = Panel2)
-                Text("Your daily allowance is ready.", color = Muted, fontSize = 12.sp)
+                LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth().height(7.dp).clip(CircleShape), color = accent, trackColor = Panel2)
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text("$usedMinutes min used", color = Muted, fontSize = 11.sp)
+                    Text("$daily min allowance", color = Muted, fontSize = 11.sp)
+                }
             }
         }
         Card(colors = CardDefaults.cardColors(containerColor = Panel2), shape = RoundedCornerShape(20.dp)) {
             Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("A small pause can change your day.", color = Ink, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
-                Text("Open one of your selected apps. TOVI will step in with a reminder and give you a choice.", color = Muted, fontSize = 13.sp, lineHeight = 19.sp)
+                Text(if (remaining > 0) "You're in control." else "You've reached today's limit.", color = Ink, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+                Text(if (remaining > 0) "TOVI keeps track of time in the apps you selected. When you open one, you'll get a moment to pause and decide." else "Your selected apps will stay paused until your daily allowance resets.", color = Muted, fontSize = 13.sp, lineHeight = 19.sp)
                 Text("Pause. Breathe. Decide.", color = accent, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
             }
         }
-        Text("APPS YOU'VE CHOSEN", color = Muted, fontSize = 10.sp, letterSpacing = 1.3.sp, fontWeight = FontWeight.Bold)
-        apps.forEach { app ->
+        Text("TODAY'S APP USE", color = Muted, fontSize = 10.sp, letterSpacing = 1.3.sp, fontWeight = FontWeight.Bold)
+        if (apps.isEmpty()) Text("Choose apps in My apps to start tracking.", color = Muted)
+        apps.sortedByDescending { appSeconds[it.pkg] ?: 0L }.forEach { app ->
+            val minutes = ((appSeconds[app.pkg] ?: 0L) / 60L).toInt()
             Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(Panel).padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
                 Box(Modifier.size(36.dp).clip(RoundedCornerShape(11.dp)).background(Panel2), contentAlignment = Alignment.Center) {
                     Text(app.name.take(1).uppercase(), color = accent, fontWeight = FontWeight.Bold)
                 }
-                Spacer(Modifier.width(12.dp)); Text(app.name, color = Ink, fontWeight = FontWeight.Medium)
-                Spacer(Modifier.weight(1f)); Text("WATCHING", color = accent, fontSize = 9.sp)
+                Spacer(Modifier.width(12.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(app.name, color = Ink, fontWeight = FontWeight.Medium)
+                    Text("Selected for TOVI", color = Muted, fontSize = 10.sp)
+                }
+                Text("$minutes min", color = accent, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
             }
         }
+    }
+}
+
+@Composable
+private fun InsightsPage(
+    context: android.content.Context, selected: Set<String>, installed: List<AppEntry>,
+    refreshKey: Int, modifier: Modifier = Modifier
+) {
+    val week = remember(refreshKey) { UsageLedger.weeklyTotals(context) }
+    val appSeconds = remember(refreshKey, selected) { UsageLedger.selectedAppSeconds(context, selected) }
+    val maxSeconds = (week.maxOfOrNull { it.second } ?: 0L).coerceAtLeast(60L)
+    Page(modifier) {
+        Text("Your insights", color = Ink, fontSize = 28.sp, fontWeight = FontWeight.Bold)
+        Text("A clearer picture of where your time goes.", color = Muted, fontSize = 13.sp)
+        Card(colors = CardDefaults.cardColors(containerColor = Panel), shape = RoundedCornerShape(20.dp)) {
+            Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                Text("LAST 7 DAYS", color = Muted, fontSize = 10.sp, letterSpacing = 1.4.sp)
+                week.forEach { (day, seconds) ->
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text(day, color = Muted, fontSize = 11.sp, modifier = Modifier.width(34.dp))
+                        Box(Modifier.weight(1f).height(10.dp).clip(CircleShape).background(Panel2)) {
+                            Box(Modifier.fillMaxWidth((seconds.toFloat() / maxSeconds).coerceIn(0f, 1f)).fillMaxHeight().clip(CircleShape).background(Color(0xFF83C99D)))
+                        }
+                        Text("${seconds / 60}m", color = Ink, fontSize = 11.sp, modifier = Modifier.width(38.dp))
+                    }
+                }
+                Text("Only selected-app foreground time is counted.", color = Muted, fontSize = 10.sp)
+            }
+        }
+        Text("APP BREAKDOWN TODAY", color = Muted, fontSize = 10.sp, letterSpacing = 1.3.sp, fontWeight = FontWeight.Bold)
+        selected.sortedByDescending { appSeconds[it] ?: 0L }.forEach { pkg ->
+            val name = installed.firstOrNull { it.pkg == pkg }?.name ?: pkg
+            val minutes = ((appSeconds[pkg] ?: 0L) / 60L).toInt()
+            Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(Panel).padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text(name, color = Ink, modifier = Modifier.weight(1f))
+                Text("$minutes min", color = Color(0xFF83C99D), fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
+            }
+        }
+        SetupCard("A note about your data", "Your usage history is stored locally on this device. TOVI records which selected app is in the foreground and for how long; it does not read app content.")
     }
 }
 
