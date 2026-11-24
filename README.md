@@ -1,94 +1,103 @@
-# Limity
+# TOVI
 
-**Make time count.**
+**Time, on your terms.**
 
-Limity is a mindful social-media usage and digital-wellbeing app. It helps people make intentional choices about screen time through a configurable daily token allowance, thoughtful milestone reminders, and app blocking when their allowance is used.
+TOVI is a digital-wellbeing project built around a simple idea: your attention belongs to you. The Android app is being developed to help people set intentional limits around selected apps, understand their usage, and make more room for life beyond the screen.
 
-> Android first. iOS is planned next.
+> **Development status:** early Android prototype. The interface and settings are present; live usage monitoring, token accounting, reminders, app blocking, and insights are not yet implemented.
 
-## Product principles
+## The TOVI approach
 
-- **Your allowance, your rules:** set your own daily token budget.
-- **Usage-based tokens:** one token represents one minute in a selected app.
-- **Mindful, not nagging:** reminders are tied to usage milestones rather than constant interruptions.
-- **Personal expression:** choose an accent colour for the app.
-- **No judgement:** Limity encourages intentional choices, not guilt.
+- **Your time, your rules** — choose a daily allowance that fits your life.
+- **One minute at a time** — the planned token model makes selected-app usage understandable.
+- **Helpful, not noisy** — reminders are designed around meaningful milestones, not constant interruptions.
+- **No shame, no lectures** — TOVI is about intentional choices, not guilt.
 
-## Planned features
+## Product experience
 
-- [x] Initial Android project and Compose interface
-- [x] Custom daily token allowance setting
-- [x] Accent colour selection
-- [x] Android usage-access settings entry point
-- [x] GitHub Actions debug APK workflow
-- [ ] Select monitored apps
-- [ ] Accurate foreground app usage tracking
-- [ ] Daily token accounting and reset schedule
-- [ ] Configurable milestone reminders
-- [ ] Blocking screen when allowance is exhausted
-- [ ] Usage insights and history
-- [ ] Privacy and accessibility review
-- [ ] iOS version using Apple's supported Screen Time APIs
+The planned experience has four parts:
 
-## Token model
+1. **Home** — see your daily allowance and a clear view of the day.
+2. **Apps** — choose which apps count toward your allowance.
+3. **Insights** — understand patterns over time.
+4. **Settings** — set your allowance, reset time, and visual preferences.
 
-The intended model is **1 token per minute** of foreground use in apps selected by the user. Only selected apps count. Background time should not consume tokens. The daily allowance and reset schedule will be configurable.
+### Token model
 
-## Accent colours
+The intended model is **1 token = 1 minute** of foreground use in an app selected by the user. Background time should not consume tokens. The daily allowance and reset schedule will be configurable. When the allowance is exhausted, the planned experience will pause access to selected apps until the next reset.
 
-The initial interface includes Sage, Blue, Purple, Orange, Rose, and Teal. The selected accent is saved locally on the device.
+### Milestone reminders
 
-## Android development
+The planned reminder points are 25%, 50%, 75%, 90%, and 100% of the daily allowance. These are intended to be meaningful check-ins rather than recurring nags.
 
-- Language: Kotlin
-- UI: Jetpack Compose and Material 3
-- Minimum Android version: Android 8.0 (API 26)
-- Compile/target SDK: Android 35
+## Current implementation
+
+| Capability | Status |
+| --- | --- |
+| Android project and Compose interface | Available |
+| Daily allowance setting saved locally | Available |
+| Accent colour selection saved locally | Available |
+| Shortcut to Android usage-access settings | Available |
+| Monitored-app selection | Planned |
+| Foreground usage tracking | Planned |
+| Token deduction and daily reset | Planned |
+| Milestone notifications | Planned |
+| Blocking when allowance is exhausted | Planned |
+| Usage insights and history | Planned |
+| Privacy, accessibility, and release review | Planned |
+
+The usage-access shortcut only opens Android system settings. It does **not** mean TOVI is currently tracking usage. Features will be described as available only after they are implemented and tested.
+
+## Technology
+
+- Kotlin
+- Jetpack Compose and Material 3
+- Android minimum: 8.0 (API 26)
+- Compile / target SDK: 35
 - JDK: 17
+- Gradle build through GitHub Actions
 
-Open this repository in Android Studio and allow Gradle to sync. A debug APK can also be built with:
+The app currently retains its original Android application ID, `com.limity.app`, so existing development installs can be updated without changing package identity during the brand transition. The visible product name is TOVI.
+
+## Build the Android app
+
+Open the repository in Android Studio and allow Gradle to sync. To build a debug APK locally:
 
 ```bash
-gradle assembleDebug
+gradle --no-daemon assembleDebug
 ```
 
-GitHub Actions builds the debug APK on pushes to `main` and manual workflow runs. Download the generated artifact from the workflow run's **Artifacts** section.
+Every push to `main` and manual workflow run triggers the Android build. Download the **TOVI-debug** artifact from the successful GitHub Actions run.
 
-## Current development status
+## Official website and downloads
 
-This is an early development build. The current interface lets you configure and locally save the daily token allowance and accent colour. **Live usage tracking, token deduction, milestone notifications, app selection, and enforcement/blocking are not implemented yet.** The usage-access button currently opens Android's system settings; it does not mean monitoring is already active.
+The TOVI website is deployed with GitHub Pages:
 
-Limity will request only the permissions needed for its wellbeing features and explain why they are needed. Android app-usage access and blocking have platform and distribution-policy constraints that must be reviewed before release.
+- **Website:** https://iy367-ux.github.io/TOVI/
+- **Releases:** https://github.com/iy367-ux/TOVI/releases
+- **Source:** https://github.com/iy367-ux/TOVI
 
-## Roadmap
+The website's download centre reads the public GitHub Releases feed. It shows published releases and APK assets only; it does not present unverified CI artifacts as stable downloads. Until an official release is published, the download centre will say that no release is available.
 
-1. Finish Android usage monitoring and the token engine.
-2. Add app selection, milestones, resets, and blocking.
-3. Test on real Android devices and improve accessibility.
-4. Prepare a release build and privacy documentation.
-5. Begin the iOS implementation.
+## Development roadmap
+
+1. Implement reliable foreground-app usage tracking.
+2. Build the token engine, daily reset, and app-selection experience.
+3. Add milestone notifications and transparent, user-authorized blocking.
+4. Test on real devices, including Android 16 and common OEM battery restrictions.
+5. Complete privacy, accessibility, and distribution-policy reviews.
+6. Prepare the first signed release, then evaluate the iOS approach using Apple's supported Screen Time APIs.
+
+## Brand system
+
+- **Name:** TOVI
+- **Tagline:** Time, on your terms.
+- **Primary type:** Manrope
+- **Secondary type:** DM Sans
+- **Midnight Forest:** `#101512`
+- **Deep Sage:** `#1B2821`
+- **Living Green:** `#83C99D`
 
 ---
 
-Made to help you spend your time on what matters.
-
-
-## TOVI brand and website
-
-The product brand is now **TOVI** — “Time, on your terms.” The official website source lives in this repository:
-
-- `index.html` — responsive TOVI website
-- `assets/css/style.css` — visual system (Manrope + DM Sans; 60/30/10 palette)
-- `assets/js/main.js` — live GitHub Releases download feed
-- `assets/tovi-mark.svg` — geometric brand mark and favicon
-- `.github/workflows/pages.yml` — automatic GitHub Pages deployment
-
-The download centre reads the public GitHub Releases API for this repository, lists the latest stable release and recent release history, and refreshes every five minutes. It will show an honest “no release yet” state until an official release with an APK asset is published.
-
-### Enable the website
-
-In the repository, open **Settings → Pages**, set **Build and deployment → Source** to **GitHub Actions**, and save. The workflow will then deploy the site on website-related pushes to `main`.
-
-Expected site URL: https://iy367-ux.github.io/Limity/
-
-Note: the Android application is still in early development. The website describes the planned token and wellbeing experience but does not claim that unfinished monitoring or blocking features are already available.
+*Made for a more intentional everyday.*
