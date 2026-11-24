@@ -119,6 +119,8 @@ class ToviAccessibilityService : AccessibilityService() {
 
     private fun showIntervention(pkg: String) {
         if (overlay != null) return
+        // Time spent reading the pause screen is not counted as app usage.
+        sessionStartedAt = 0L
         val appName = try {
             packageManager.getApplicationLabel(packageManager.getApplicationInfo(pkg, 0)).toString()
         } catch (_: Exception) { "this app" }
@@ -160,6 +162,8 @@ class ToviAccessibilityService : AccessibilityService() {
             continueButton.setOnClickListener {
                 removeIntervention()
                 allowedUntil = SystemClock.elapsedRealtime() + 5 * 60 * 1000L
+                sessionPackage = pkg
+                sessionStartedAt = SystemClock.elapsedRealtime()
                 handler.postDelayed({
                     flushForegroundTime()
                     if (activePackage == pkg && overlay == null) {
