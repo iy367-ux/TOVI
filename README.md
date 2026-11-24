@@ -4,7 +4,7 @@
 
 TOVI is a digital-wellbeing project built around a simple idea: your attention belongs to you. The Android app is being developed to help people set intentional limits around selected apps, understand their usage, and make more room for life beyond the screen.
 
-> **Development status:** early Android prototype. The interface and settings are present; live usage monitoring, token accounting, reminders, app blocking, and insights are not yet implemented.
+ > **Development status:** working early Android build. First-run onboarding, installed-app selection, the accessibility-based pause screen, a five-minute continue choice, and minute-based token deduction during a continued session are implemented. This is an early test build and still needs device testing and refinement.
 
 ## The TOVI approach
 
@@ -46,7 +46,7 @@ The planned reminder points are 25%, 50%, 75%, 90%, and 100% of the daily allowa
 | Usage insights and history | Planned |
 | Privacy, accessibility, and release review | Planned |
 
-The usage-access shortcut only opens Android system settings. It does **not** mean TOVI is currently tracking usage. Features will be described as available only after they are implemented and tested.
+TOVI asks the user to enable its Accessibility service manually in Android Settings. The service detects foreground app changes for the apps selected during setup and displays a full-screen pause overlay. If the user chooses to continue for five minutes, TOVI deducts one token per minute while that selected app remains in the foreground, then shows the pause again. Choosing Go back returns to the Home screen. The service does not inspect screen text, messages, photos, or keystrokes. This is an early implementation: strict lockout, richer usage history, notifications, and extensive OEM/device testing remain outstanding.
 
 ## Technology
 
