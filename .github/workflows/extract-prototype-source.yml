@@ -1,4 +1,4 @@
-name: Extract TOVI prototype source
+name: Extract TOVI v1.5 and v2.0 prototype source
 on:
   push:
     paths:
@@ -28,3 +28,4 @@ jobs:
           name: TOVI-prototype-source
           path: extracted/
           retention-days: 7
+          if-no-files-found: error
