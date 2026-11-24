@@ -11,6 +11,8 @@ import android.os.SystemClock
 import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
+import android.view.animation.Animation
+import android.view.animation.ScaleAnimation
 import android.view.accessibility.AccessibilityEvent
 import android.widget.Button
 import android.widget.LinearLayout
@@ -20,6 +22,7 @@ class ToviAccessibilityService : AccessibilityService() {
     private val handler = Handler(Looper.getMainLooper())
     private var windowManager: WindowManager? = null
     private var overlay: View? = null
+    private var countdownRunnable: Runnable? = null
     private var activePackage: String? = null
     private var lastIntervenedPackage: String? = null
     private var allowedUntil = 0L
@@ -143,6 +146,21 @@ class ToviAccessibilityService : AccessibilityService() {
         eyebrow.letterSpacing = .14f
         card.addView(eyebrow)
         card.addView(space(17))
+        val breath = TextView(this).apply {
+            text = "TOVI"
+            textSize = 17f
+            typeface = Typeface.create("sans-serif", Typeface.BOLD)
+            gravity = Gravity.CENTER
+            setTextColor(Color.rgb(16, 25, 19))
+            background = GradientDrawable(GradientDrawable.Orientation.TL_BR,
+                intArrayOf(Color.rgb(131, 201, 157), Color.rgb(72, 133, 99))).apply { shape = GradientDrawable.OVAL }
+        }
+        card.addView(breath, LinearLayout.LayoutParams(dp(76), dp(76)).apply { gravity = Gravity.CENTER_HORIZONTAL })
+        breath.startAnimation(ScaleAnimation(.82f, 1.08f, .82f, 1.08f,
+            Animation.RELATIVE_TO_SELF, .5f, Animation.RELATIVE_TO_SELF, .5f).apply {
+            duration = 2200L; repeatMode = Animation.REVERSE; repeatCount = Animation.INFINITE
+        })
+        card.addView(space(17))
         card.addView(label(if (exhausted) "Your time is up." else "You opened $appName.", 27f, Color.rgb(244, 246, 240), true))
         card.addView(space(12))
         card.addView(label(
@@ -157,9 +175,12 @@ class ToviAccessibilityService : AccessibilityService() {
         card.addView(back, matchWidth())
         if (!exhausted) {
             card.addView(space(10))
-            val continueButton = actionButton("Continue for 5 minutes", Color.rgb(54, 70, 59), Color.WHITE)
+            val pauseSeconds = prefs.getInt("pause_seconds", 5).coerceIn(0, 30)
+            val continueButton = actionButton(if (pauseSeconds > 0) "Pause for ${pauseSeconds}s" else "Continue for 5 minutes", Color.rgb(54, 70, 59), Color.WHITE)
+            continueButton.isEnabled = pauseSeconds == 0
             card.addView(continueButton, matchWidth())
             continueButton.setOnClickListener {
+                if (!continueButton.isEnabled) return@setOnClickListener
                 removeIntervention()
                 allowedUntil = SystemClock.elapsedRealtime() + 5 * 60 * 1000L
                 sessionPackage = pkg
@@ -193,12 +214,32 @@ class ToviAccessibilityService : AccessibilityService() {
         try {
             windowManager?.addView(root, params)
             overlay = root
+            if (!exhausted && pauseSeconds > 0) {
+                var secondsLeft = pauseSeconds
+                countdownRunnable = object : Runnable {
+                    override fun run() {
+                        secondsLeft--
+                        if (overlay == null) return
+                        if (secondsLeft <= 0) {
+                            continueButton.isEnabled = true
+                            continueButton.text = "Continue for 5 minutes"
+                            countdownRunnable = null
+                        } else {
+                            continueButton.text = "Pause for ${secondsLeft}s"
+                            handler.postDelayed(this, 1000L)
+                        }
+                    }
+                }
+                handler.postDelayed(countdownRunnable!!, 1000L)
+            }
         } catch (_: Exception) {
             overlay = null
         }
     }
 
     private fun removeIntervention() {
+        countdownRunnable?.let { handler.removeCallbacks(it) }
+        countdownRunnable = null
         val current = overlay ?: return
         try { windowManager?.removeView(current) } catch (_: Exception) { }
         overlay = null
