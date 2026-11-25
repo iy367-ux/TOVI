@@ -27,9 +27,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-private val Bg = Color(0xFF101512)
-private val Panel = Color(0xFF1B2821)
-private val Panel2 = Color(0xFF26352C)
+private val Bg = Color(0xFF17211B)
+private val Panel = Color(0xFF26352C)
+private val Panel2 = Color(0xFF526B59)
+private val Accent = Color(0xFFF0923F)
 private val Ink = Color(0xFFF2F4EF)
 private val Muted = Color(0xFFB5C2B8)
 private data class AppEntry(val pkg: String, val name: String)
@@ -53,7 +54,6 @@ class MainActivity : ComponentActivity() {
             var enabled by remember { mutableStateOf(serviceOn()) }
             var chosen by remember { mutableStateOf(prefs.getStringSet("selected_apps", emptySet())?.toSet() ?: emptySet()) }
             var limit by remember { mutableFloatStateOf(prefs.getInt("daily_tokens", 120).toFloat()) }
-            var accentIndex by remember { mutableIntStateOf(prefs.getInt("accent_index", 0)) }
             var pauseSeconds by remember { mutableIntStateOf(prefs.getInt("pause_seconds", 5)) }
             var tab by remember { mutableIntStateOf(0) }
             var refreshKey by remember { mutableIntStateOf(0) }
@@ -64,9 +64,8 @@ class MainActivity : ComponentActivity() {
                 lifecycle.addObserver(observer)
                 onDispose { lifecycle.removeObserver(observer) }
             }
-            val accents = listOf(Color(0xFF83C99D), Color(0xFF6BA9E8), Color(0xFFA78BFA), Color(0xFFF0A36B), Color(0xFFE88BA5), Color(0xFF55C8BE))
-            val accent = accents[accentIndex.coerceIn(0, accents.lastIndex)]
-            MaterialTheme(colorScheme = darkColorScheme(primary = accent, background = Bg, surface = Panel, onSurface = Ink, secondary = Muted)) {
+            val accent = Accent
+            MaterialTheme(colorScheme = darkColorScheme(primary = Accent, onPrimary = Bg, background = Bg, surface = Panel, onSurface = Ink, secondary = Panel2, onSecondary = Ink)) {
                 if (setup) {
                     SetupFlow(
                         apps = apps, chosen = chosen, onToggle = { pkg -> chosen = if (pkg in chosen) chosen - pkg else chosen + pkg },
@@ -97,8 +96,7 @@ class MainActivity : ComponentActivity() {
                             0 -> HomePage(prefs.getInt("tokens_remaining", limit.toInt()), prefs.getInt("daily_tokens", limit.toInt()), UsageLedger.totalSeconds(this@MainActivity), UsageLedger.selectedAppSeconds(this@MainActivity, chosen), accent, apps.filter { it.pkg in chosen }, Modifier.padding(pad), refreshKey)
                             1 -> AppsPage(apps.filter { it.pkg in chosen }, { setup = true }, Modifier.padding(pad))
                             2 -> InsightsPage(this@MainActivity, chosen, apps, refreshKey, Modifier.padding(pad))
-                            else -> SettingsPage(limit, accentIndex, accents, pauseSeconds, { limit = it; prefs.edit().putInt("daily_tokens", it.toInt()).apply() },
-                                { accentIndex = it; prefs.edit().putInt("accent_index", it).apply() },
+                            else -> SettingsPage(limit, pauseSeconds, { limit = it; prefs.edit().putInt("daily_tokens", it.toInt()).apply() },
                                 { pauseSeconds = it; prefs.edit().putInt("pause_seconds", it).apply() }, Modifier.padding(pad))
                         }
                     }
@@ -120,7 +118,7 @@ private fun SetupFlow(
         Text("tovi.", color = Ink, fontSize = 34.sp, fontWeight = FontWeight.ExtraBold)
         Text("TIME, ON YOUR TERMS.", color = Muted, fontSize = 10.sp, letterSpacing = 2.sp)
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            repeat(3) { i -> Box(Modifier.weight(1f).height(4.dp).clip(CircleShape).background(if (i <= step) Color(0xFF83C99D) else Panel2)) }
+            repeat(3) { i -> Box(Modifier.weight(1f).height(4.dp).clip(CircleShape).background(if (i <= step) Accent else Panel2)) }
         }
         when (step) {
             0 -> {
@@ -156,7 +154,7 @@ private fun SetupFlow(
                 Text("Make it yours.", color = Ink, fontSize = 30.sp, fontWeight = FontWeight.Bold)
                 Text("Set your daily allowance, then enable TOVI's intervention service. Android needs your permission before TOVI can notice when a selected app opens.", color = Muted, fontSize = 14.sp, lineHeight = 21.sp)
                 SetupCard("Your daily allowance", "1 token = 1 minute in an app you selected.")
-                Text("${limit.toInt()} tokens per day", color = Ink, fontSize = 25.sp, fontWeight = FontWeight.Bold)
+                Text("${limit.toInt()} minutes per day", color = Ink, fontSize = 25.sp, fontWeight = FontWeight.Bold)
                 Slider(value = limit, onValueChange = onLimit, valueRange = 15f..600f, steps = 38)
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text("15 min", color = Muted, fontSize = 11.sp); Text("10 hours", color = Muted, fontSize = 11.sp)
@@ -167,7 +165,7 @@ private fun SetupFlow(
                         Text("TOVI uses Android Accessibility only to detect which app is in the foreground and show its pause screen. It does not inspect messages, photos or what you type.", color = Muted, fontSize = 12.sp, lineHeight = 18.sp)
                         Button(onClick = onEnable, modifier = Modifier.fillMaxWidth()) { Text("Open Accessibility settings") }
                         OutlinedButton(onClick = onCheck, modifier = Modifier.fillMaxWidth()) { Text("I've enabled it — check again") }
-                        Text(if (serviceEnabled) "✓ Intervention service enabled" else "Not enabled yet", color = if (serviceEnabled) Color(0xFF83C99D) else Color(0xFFE4B17B), fontSize = 12.sp)
+                        Text(if (serviceEnabled) "✓ Intervention service enabled" else "Not enabled yet", color = if (serviceEnabled) Color(0xFF83C99D) else Accent, fontSize = 12.sp)
                     }
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -313,11 +311,10 @@ private fun SimplePage(title: String, description: String, modifier: Modifier = 
 
 @Composable
 private fun SettingsPage(
-    limit: Float, selected: Int, accents: List<Color>, pauseSeconds: Int,
-    onLimit: (Float) -> Unit, onAccent: (Int) -> Unit,
-    onPauseSeconds: (Int) -> Unit, modifier: Modifier = Modifier
+    limit: Float, pauseSeconds: Int,
+    onLimit: (Float) -> Unit, onPauseSeconds: (Int) -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    val names = listOf("Sage", "Blue", "Purple", "Orange", "Rose", "Teal")
     Page(modifier) {
         Text("Settings", color = Ink, fontSize = 28.sp, fontWeight = FontWeight.Bold)
         SetupCard("Daily allowance", "1 token represents one minute of selected-app use.")
@@ -329,15 +326,6 @@ private fun SettingsPage(
             listOf(3, 5, 10).forEach { seconds ->
                 FilterChip(selected = pauseSeconds == seconds, onClick = { onPauseSeconds(seconds) },
                     label = { Text("$seconds sec") }, modifier = Modifier.weight(1f))
-            }
-        }
-        Text("APP ACCENT COLOUR", color = Muted, fontSize = 11.sp, letterSpacing = 1.sp)
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            accents.forEachIndexed { i, color ->
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Box(Modifier.size(30.dp).clip(CircleShape).background(color).clickable { onAccent(i) })
-                    Text(names[i], color = Muted, fontSize = 9.sp)
-                }
             }
         }
     }
