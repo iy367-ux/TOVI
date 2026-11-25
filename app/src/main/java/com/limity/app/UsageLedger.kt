@@ -25,11 +25,13 @@ object UsageLedger {
 
     private class LedgerDb(context: Context) :
         SQLiteOpenHelper(context.applicationContext, DB_NAME, null, DB_VERSION) {
+        init {
+            setWriteAheadLoggingEnabled(true)
+        }
 
         override fun onConfigure(db: SQLiteDatabase) {
             super.onConfigure(db)
             db.setForeignKeyConstraintsEnabled(true)
-            db.enableWriteAheadLogging()
         }
 
         override fun onCreate(db: SQLiteDatabase) {
