@@ -56,7 +56,7 @@ Current usage totals are stored locally in SharedPreferences, grouped by local d
 - Kotlin
 - Jetpack Compose and Material 3
 - Android minimum: 8.0 (API 26)
-- Compile / target SDK: 35
+- Compile / target SDK: 36 (Android 16)
 - JDK: 17
 - Gradle build through GitHub Actions
 
