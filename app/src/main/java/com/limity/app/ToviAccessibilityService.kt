@@ -37,6 +37,7 @@ class ToviAccessibilityService : AccessibilityService() {
     private val usageTicker = object : Runnable {
         override fun run() {
             flushForegroundTime()
+            prefs.edit().putLong("service_heartbeat_at", System.currentTimeMillis()).apply()
             handler.postDelayed(this, 15_000L)
         }
     }
@@ -45,6 +46,10 @@ class ToviAccessibilityService : AccessibilityService() {
         super.onServiceConnected()
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
         selectedPackages = prefs.getStringSet("selected_apps", emptySet())?.toSet() ?: emptySet()
+        prefs.edit()
+            .putLong("service_started_at", System.currentTimeMillis())
+            .putLong("service_heartbeat_at", System.currentTimeMillis())
+            .apply()
         UsageLedger.resetIfNewDay(this)
         handler.removeCallbacks(usageTicker)
         handler.postDelayed(usageTicker, 15_000L)
@@ -90,6 +95,7 @@ class ToviAccessibilityService : AccessibilityService() {
         flushForegroundTime()
         removeIntervention()
         handler.removeCallbacksAndMessages(null)
+        prefs.edit().remove("service_heartbeat_at").apply()
         super.onDestroy()
     }
 
