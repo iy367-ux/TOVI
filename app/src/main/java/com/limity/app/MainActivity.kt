@@ -113,6 +113,7 @@ private fun SetupFlow(
     onEnable: () -> Unit, onCheck: () -> Unit, onFinish: () -> Unit
 ) {
     var step by remember { mutableIntStateOf(0) }
+    var privacyAccepted by remember { mutableStateOf(false) }
     Column(Modifier.fillMaxSize().background(Bg).statusBarsPadding().verticalScroll(rememberScrollState()).padding(22.dp),
         verticalArrangement = Arrangement.spacedBy(17.dp)) {
         Text("tovi.", color = Ink, fontSize = 34.sp, fontWeight = FontWeight.ExtraBold)
@@ -159,6 +160,14 @@ private fun SetupFlow(
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text("15 min", color = Muted, fontSize = 11.sp); Text("10 hours", color = Muted, fontSize = 11.sp)
                 }
+                SetupCard(
+                    "Accessibility disclosure",
+                    "TOVI receives foreground-app change events and package names so it can recognise when a selected app opens and show your pause. Only selected-app usage is stored on this device. TOVI does not read app text, messages, photos or keystrokes."
+                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(checked = privacyAccepted, onCheckedChange = { privacyAccepted = it })
+                    Text("I understand and agree to this use.", color = Ink, fontSize = 13.sp)
+                }
                 Card(colors = CardDefaults.cardColors(containerColor = Panel), shape = RoundedCornerShape(18.dp)) {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Text("Enable app interventions", color = Ink, fontWeight = FontWeight.SemiBold)
@@ -170,7 +179,7 @@ private fun SetupFlow(
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     OutlinedButton(onClick = { step = 1 }, modifier = Modifier.weight(1f).height(52.dp)) { Text("Back") }
-                    Button(onClick = onFinish, enabled = serviceEnabled && chosen.isNotEmpty(), modifier = Modifier.weight(1f).height(52.dp)) { Text("Start TOVI  →") }
+                    Button(onClick = onFinish, enabled = serviceEnabled && chosen.isNotEmpty() && privacyAccepted, modifier = Modifier.weight(1f).height(52.dp)) { Text("Start TOVI  →") }
                 }
             }
         }
