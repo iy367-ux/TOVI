@@ -37,6 +37,7 @@ Milestones are intended to be calm, in-app moments rather than push notification
 | Android project and Compose interface | Implemented |
 | First-run setup and local allowance setting | Implemented |
 | Selected-app picker | Implemented |
+| Accessibility data disclosure and affirmative first-run consent | Implemented |
 | Accessibility-based foreground app detection | Implemented; real-device validation pending |
 | Foreground-time accounting | Implemented with local aggregate counters; reconciliation and edge-case testing pending |
 | Daily allowance and local-day reset | Implemented; clock and timezone edge cases need testing |
