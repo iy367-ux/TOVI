@@ -72,7 +72,11 @@ class ToviAccessibilityService : AccessibilityService() {
             sessionPackage = pkg
             sessionStartedAt = SystemClock.elapsedRealtime()
         }
-        if (lastIntervenedPackage != pkg && overlay == null) {
+        // Honour the user's five-minute continuation for this app. The allowance
+        // ends on its timer, or immediately if the daily token balance is exhausted.
+        val continuationActive = allowedUntil > SystemClock.elapsedRealtime() &&
+            lastIntervenedPackage == pkg && UsageLedger.remainingTokens(this) > 0
+        if (!continuationActive && lastIntervenedPackage != pkg && overlay == null) {
             lastIntervenedPackage = pkg
             showIntervention(pkg)
         }
