@@ -132,7 +132,7 @@ private fun SetupFlow(
             1 -> {
                 Text("What distracts\nyou most?", color = Ink, fontSize = 30.sp, lineHeight = 36.sp, fontWeight = FontWeight.Bold)
                 Text("Select the apps where you'd like TOVI to step in. You can change this list later.", color = Muted, fontSize = 14.sp, lineHeight = 21.sp)
-                Text("${chosen.size} apps selected", color = Color(0xFF83C99D), fontWeight = FontWeight.SemiBold)
+                Text("${chosen.size} apps selected", color = Accent, fontWeight = FontWeight.SemiBold)
                 Column(Modifier.heightIn(max = 390.dp).clip(RoundedCornerShape(18.dp)).background(Panel).verticalScroll(rememberScrollState())) {
                     apps.forEach { app ->
                         Row(Modifier.fillMaxWidth().clickable { onToggle(app.pkg) }.padding(horizontal = 14.dp, vertical = 9.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -165,7 +165,7 @@ private fun SetupFlow(
                         Text("TOVI uses Android Accessibility only to detect which app is in the foreground and show its pause screen. It does not inspect messages, photos or what you type.", color = Muted, fontSize = 12.sp, lineHeight = 18.sp)
                         Button(onClick = onEnable, modifier = Modifier.fillMaxWidth()) { Text("Open Accessibility settings") }
                         OutlinedButton(onClick = onCheck, modifier = Modifier.fillMaxWidth()) { Text("I've enabled it — check again") }
-                        Text(if (serviceEnabled) "✓ Intervention service enabled" else "Not enabled yet", color = if (serviceEnabled) Color(0xFF83C99D) else Accent, fontSize = 12.sp)
+                        Text(if (serviceEnabled) "✓ Intervention service enabled" else "Not enabled yet", color = if (serviceEnabled) Accent else Accent, fontSize = 12.sp)
                     }
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -210,7 +210,7 @@ private fun HomePage(
                 Text("TIME LEFT TODAY", color = Muted, fontSize = 10.sp, letterSpacing = 1.5.sp)
                 Row(verticalAlignment = Alignment.Bottom) {
                     Text("$remaining", color = Ink, fontSize = 43.sp, fontWeight = FontWeight.Bold)
-                    Spacer(Modifier.width(8.dp)); Text("tokens", color = accent, modifier = Modifier.padding(bottom = 7.dp))
+                    Spacer(Modifier.width(8.dp)); Text("min", color = accent, modifier = Modifier.padding(bottom = 7.dp))
                 }
                 LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth().height(7.dp).clip(CircleShape), color = accent, trackColor = Panel2)
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -263,7 +263,7 @@ private fun InsightsPage(
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         Text(day, color = Muted, fontSize = 11.sp, modifier = Modifier.width(34.dp))
                         Box(Modifier.weight(1f).height(10.dp).clip(CircleShape).background(Panel2)) {
-                            Box(Modifier.fillMaxWidth((seconds.toFloat() / maxSeconds).coerceIn(0f, 1f)).fillMaxHeight().clip(CircleShape).background(Color(0xFF83C99D)))
+                            Box(Modifier.fillMaxWidth((seconds.toFloat() / maxSeconds).coerceIn(0f, 1f)).fillMaxHeight().clip(CircleShape).background(Accent))
                         }
                         Text("${seconds / 60}m", color = Ink, fontSize = 11.sp, modifier = Modifier.width(38.dp))
                     }
@@ -277,7 +277,7 @@ private fun InsightsPage(
             val minutes = ((appSeconds[pkg] ?: 0L) / 60L).toInt()
             Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(Panel).padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text(name, color = Ink, modifier = Modifier.weight(1f))
-                Text("$minutes min", color = Color(0xFF83C99D), fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
+                Text("$minutes min", color = Accent, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
             }
         }
         SetupCard("A note about your data", "Your usage history is stored locally on this device. TOVI records which selected app is in the foreground and for how long; it does not read app content.")
@@ -291,9 +291,9 @@ private fun AppsPage(apps: List<AppEntry>, onEdit: () -> Unit, modifier: Modifie
         Text("TOVI will pause you when you open these apps.", color = Muted)
         apps.forEach { app ->
             Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(Panel).padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text(app.name.take(1).uppercase(), color = Color(0xFF83C99D), fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                Text(app.name.take(1).uppercase(), color = Accent, fontSize = 17.sp, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.width(12.dp)); Text(app.name, color = Ink, modifier = Modifier.weight(1f))
-                Text("ON", color = Color(0xFF83C99D), fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                Text("ON", color = Accent, fontSize = 10.sp, fontWeight = FontWeight.Bold)
             }
         }
         OutlinedButton(onClick = onEdit, modifier = Modifier.fillMaxWidth()) { Text("Change selected apps") }
@@ -318,7 +318,7 @@ private fun SettingsPage(
     Page(modifier) {
         Text("Settings", color = Ink, fontSize = 28.sp, fontWeight = FontWeight.Bold)
         SetupCard("Daily allowance", "1 token represents one minute of selected-app use.")
-        Text("${limit.toInt()} tokens per day", color = Ink, fontSize = 25.sp, fontWeight = FontWeight.Bold)
+        Text("${limit.toInt()} min per day", color = Ink, fontSize = 25.sp, fontWeight = FontWeight.Bold)
         Slider(value = limit, onValueChange = onLimit, valueRange = 15f..600f, steps = 38)
         Text("INTERVENTION PAUSE", color = Muted, fontSize = 11.sp, letterSpacing = 1.sp)
         SetupCard("Take a moment before deciding", "TOVI gives you a short pause before the continue option becomes available.")
