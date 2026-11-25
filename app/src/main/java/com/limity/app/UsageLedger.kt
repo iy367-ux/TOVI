@@ -130,21 +130,60 @@ object UsageLedger {
     fun totalSeconds(context: Context, day: String = dayKey()): Long =
         sum(context, "day_key = ?", arrayOf(day))
 
-    fun addForegroundSeconds(context: Context, pkg: String, seconds: Long) {
-        if (seconds <= 0L || pkg.isBlank()) return
+    /**
+     * Record a measured foreground interval. If it crosses local midnight, split
+     * it into separate daily rows rather than assigning the whole interval to one day.
+     */
+    fun addForegroundInterval(
+        context: Context,
+        pkg: String,
+        startMillis: Long,
+        endMillis: Long
+    ) {
+        if (pkg.isBlank() || endMillis <= startMillis) return
         val db = database(context)
-        val row = ContentValues().apply {
-            put("day_key", dayKey())
-            put("package_name", pkg)
-            put("duration_seconds", seconds)
-            put("recorded_at", System.currentTimeMillis())
+        db.beginTransaction()
+        try {
+            val calendar = java.util.Calendar.getInstance()
+            var cursor = startMillis
+            while (cursor < endMillis) {
+                calendar.timeInMillis = cursor
+                val day = dayKey(Date(cursor))
+                calendar.add(java.util.Calendar.DAY_OF_YEAR, 1)
+                calendar.set(java.util.Calendar.HOUR_OF_DAY, 0)
+                calendar.set(java.util.Calendar.MINUTE, 0)
+                calendar.set(java.util.Calendar.SECOND, 0)
+                calendar.set(java.util.Calendar.MILLISECOND, 0)
+                val boundary = calendar.timeInMillis
+                val segmentEnd = minOf(endMillis, boundary)
+                val seconds = (segmentEnd - cursor) / 1000L
+                if (seconds > 0L) {
+                    val row = ContentValues().apply {
+                        put("day_key", day)
+                        put("package_name", pkg)
+                        put("duration_seconds", seconds)
+                        put("recorded_at", segmentEnd)
+                    }
+                    db.insertOrThrow(TABLE, null, row)
+                }
+                cursor = segmentEnd
+            }
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
         }
-        db.insertOrThrow(TABLE, null, row)
 
         val prefs = context.getSharedPreferences("tovi_settings", Context.MODE_PRIVATE)
         val daily = prefs.getInt("daily_tokens", 120).coerceAtLeast(0)
         val consumed = (totalSeconds(context) / 60L).coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
         prefs.edit().putInt("tokens_remaining", (daily - consumed).coerceAtLeast(0)).apply()
+    }
+
+    /** Compatibility wrapper for callers that only have a duration. */
+    fun addForegroundSeconds(context: Context, pkg: String, seconds: Long) {
+        if (seconds <= 0L) return
+        val end = System.currentTimeMillis()
+        addForegroundInterval(context, pkg, end - seconds * 1000L, end)
     }
 
     fun remainingTokens(context: Context): Int {
