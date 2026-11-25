@@ -165,7 +165,7 @@ private fun SetupFlow(
                         Text("TOVI uses Android Accessibility only to detect which app is in the foreground and show its pause screen. It does not inspect messages, photos or what you type.", color = Muted, fontSize = 12.sp, lineHeight = 18.sp)
                         Button(onClick = onEnable, modifier = Modifier.fillMaxWidth()) { Text("Open Accessibility settings") }
                         OutlinedButton(onClick = onCheck, modifier = Modifier.fillMaxWidth()) { Text("I've enabled it — check again") }
-                        Text(if (serviceEnabled) "✓ Intervention service enabled" else "Not enabled yet", color = if (serviceEnabled) Accent else Accent, fontSize = 12.sp)
+                        Text(if (serviceEnabled) "✓ Intervention service enabled" else "Not enabled yet", color = if (serviceEnabled) Panel2 else Accent, fontSize = 12.sp)
                     }
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
