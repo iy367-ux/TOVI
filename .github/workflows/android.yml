@@ -2,7 +2,7 @@ name: TOVI Android CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "claude-review-pass" ]
   pull_request:
     branches: [ "main" ]
   workflow_dispatch:
