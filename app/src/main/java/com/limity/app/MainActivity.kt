@@ -59,7 +59,10 @@ class MainActivity : ComponentActivity() {
             var refreshKey by remember { mutableIntStateOf(0) }
             DisposableEffect(lifecycle) {
                 val observer = LifecycleEventObserver { _, event ->
-                    if (event == Lifecycle.Event.ON_RESUME) refreshKey++
+                    if (event == Lifecycle.Event.ON_RESUME) {
+                        enabled = serviceOn()
+                        refreshKey++
+                    }
                 }
                 lifecycle.addObserver(observer)
                 onDispose { lifecycle.removeObserver(observer) }
@@ -96,8 +99,17 @@ class MainActivity : ComponentActivity() {
                             0 -> HomePage(prefs.getInt("tokens_remaining", limit.toInt()), prefs.getInt("daily_tokens", limit.toInt()), UsageLedger.totalSeconds(this@MainActivity), UsageLedger.selectedAppSeconds(this@MainActivity, chosen), accent, apps.filter { it.pkg in chosen }, Modifier.padding(pad), refreshKey)
                             1 -> AppsPage(apps.filter { it.pkg in chosen }, { setup = true }, Modifier.padding(pad))
                             2 -> InsightsPage(this@MainActivity, chosen, apps, refreshKey, Modifier.padding(pad))
-                            else -> SettingsPage(limit, pauseSeconds, { limit = it; prefs.edit().putInt("daily_tokens", it.toInt()).apply() },
-                                { pauseSeconds = it; prefs.edit().putInt("pause_seconds", it).apply() }, Modifier.padding(pad))
+                            else -> SettingsPage(
+                                limit = limit,
+                                pauseSeconds = pauseSeconds,
+                                serviceEnabled = enabled,
+                                heartbeatAt = prefs.getLong("service_heartbeat_at", 0L),
+                                selectedCount = chosen.size,
+                                onLimit = { limit = it; prefs.edit().putInt("daily_tokens", it.toInt()).apply() },
+                                onPauseSeconds = { pauseSeconds = it; prefs.edit().putInt("pause_seconds", it).apply() },
+                                modifier = Modifier.padding(pad),
+                                refreshKey = refreshKey
+                            )
                         }
                     }
                 }
@@ -320,12 +332,55 @@ private fun SimplePage(title: String, description: String, modifier: Modifier = 
 
 @Composable
 private fun SettingsPage(
-    limit: Float, pauseSeconds: Int,
-    onLimit: (Float) -> Unit, onPauseSeconds: (Int) -> Unit,
-    modifier: Modifier = Modifier
+    limit: Float,
+    pauseSeconds: Int,
+    serviceEnabled: Boolean,
+    heartbeatAt: Long,
+    selectedCount: Int,
+    onLimit: (Float) -> Unit,
+    onPauseSeconds: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+    refreshKey: Int = 0
 ) {
+    val heartbeatFresh = heartbeatAt > 0L && System.currentTimeMillis() - heartbeatAt in 0L..45_000L
+    val healthTitle = when {
+        !serviceEnabled -> "Accessibility permission is off"
+        heartbeatFresh -> "Service recently checked in"
+        else -> "Service status needs checking"
+    }
+    val healthDetail = when {
+        !serviceEnabled -> "Enable TOVI in Android Accessibility settings. Until then, selected-app monitoring is not active."
+        heartbeatFresh -> "TOVI's monitoring service has checked in recently. This confirms the service is running, not that every usage event has been captured."
+        else -> "Android reports the permission as enabled, but TOVI has not received a recent service heartbeat. Reopen Accessibility settings and check that TOVI is enabled."
+    }
     Page(modifier) {
         Text("Settings", color = Ink, fontSize = 28.sp, fontWeight = FontWeight.Bold)
+        Text("PROTECTION HEALTH", color = Muted, fontSize = 10.sp, letterSpacing = 1.3.sp, fontWeight = FontWeight.Bold)
+        Card(colors = CardDefaults.cardColors(containerColor = Panel), shape = RoundedCornerShape(20.dp)) {
+            Column(Modifier.fillMaxWidth().padding(17.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+                    Box(Modifier.size(9.dp).clip(CircleShape).background(
+                        if (serviceEnabled && heartbeatFresh) Accent else Muted
+                    ))
+                    Text(healthTitle, color = Ink, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                }
+                Text(healthDetail, color = Muted, fontSize = 12.sp, lineHeight = 18.sp)
+                HorizontalDivider(color = Panel2.copy(alpha = .45f))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text("Accessibility permission", color = Muted, fontSize = 11.sp)
+                    Text(if (serviceEnabled) "Enabled" else "Off", color = Ink, fontSize = 11.sp, fontWeight = FontWeight.Medium)
+                }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text("Service heartbeat", color = Muted, fontSize = 11.sp)
+                    Text(if (heartbeatFresh) "Recent" else "Not confirmed", color = Ink, fontSize = 11.sp, fontWeight = FontWeight.Medium)
+                }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text("Selected apps", color = Muted, fontSize = 11.sp)
+                    Text("$selectedCount", color = Ink, fontSize = 11.sp, fontWeight = FontWeight.Medium)
+                }
+                Text("Battery optimisation and complete tracking accuracy are not yet verified here.", color = Muted, fontSize = 10.sp, lineHeight = 15.sp)
+            }
+        }
         SetupCard("Daily allowance", "1 token represents one minute of selected-app use.")
         Text("${limit.toInt()} min per day", color = Ink, fontSize = 25.sp, fontWeight = FontWeight.Bold)
         Slider(value = limit, onValueChange = onLimit, valueRange = 15f..600f, steps = 38)
