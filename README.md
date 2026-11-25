@@ -2,51 +2,53 @@
 
 **Time, on your terms.**
 
-TOVI is a digital-wellbeing project built around a simple idea: your attention belongs to you. The Android app is being developed to help people set intentional limits around selected apps, understand their usage, and make more room for life beyond the screen.
+TOVI is an Android-first digital-wellbeing app built around a simple idea: your attention belongs to you. It helps you set intentional limits around selected apps, understand your usage, and make more room for life beyond the screen.
 
- > **Development status:** active Android development. First-run onboarding, selected-app monitoring, foreground-time accounting, daily token reset, an allowance-aware intervention with a configurable pause and breathing animation, a five-minute intentional continuation, a live Home summary, and seven-day usage insights are now implemented in the development branch on `main`. This is not yet a release: notifications, richer scheduling, data export, accessibility review, and real-device validation remain in progress.
+> **Development status:** active development. The Android project currently includes first-run setup, selected-app monitoring, local foreground-time accounting, a daily allowance, an accessibility-based pause overlay, a configurable pause, a five-minute continuation, a Home summary, and a seven-day usage view. These features are implemented in the development source but are **not yet validated across real devices or OEMs**. Do not treat current tracking or blocking as release-ready.
 
 ## The TOVI approach
 
 - **Your time, your rules** — choose a daily allowance that fits your life.
-- **One minute at a time** — the planned token model makes selected-app usage understandable.
-- **Helpful, not noisy** — reminders are designed around meaningful milestones, not constant interruptions.
+- **One minute at a time** — one token represents one minute of selected-app use; the interface presents the allowance in minutes.
+- **Helpful, not noisy** — meaningful check-ins should appear in the app, not as a stream of notifications.
 - **No shame, no lectures** — TOVI is about intentional choices, not guilt.
 
 ## Product experience
 
-The planned experience has four parts:
+The app is organised around four areas:
 
-1. **Home** — see your daily allowance and a clear view of the day.
-2. **Apps** — choose which apps count toward your allowance.
-3. **Insights** — understand patterns over time.
-4. **Settings** — set your allowance, reset time, and visual preferences.
+1. **Home** — see the time remaining in your daily allowance and a summary of selected-app use.
+2. **My apps** — choose which installed apps count toward your allowance.
+3. **Insights** — review recent usage patterns.
+4. **Settings** — adjust your daily allowance and intervention pause.
 
-### Token model
+### Allowance model
 
-The intended model is **1 token = 1 minute** of foreground use in an app selected by the user. Background time should not consume tokens. The daily allowance and reset schedule will be configurable. When the allowance is exhausted, the planned experience will pause access to selected apps until the next reset.
+The intended model is **1 token = 1 minute** of foreground use in an app selected by the user. Background time should not consume the allowance. The daily allowance is configurable. When the allowance is exhausted, TOVI pauses selected apps until the next local-day reset.
 
-### Milestone reminders
+### Milestone moments
 
-The planned reminder points are 25%, 50%, 75%, 90%, and 100% of the daily allowance. These are intended to be meaningful check-ins rather than recurring nags.
+Milestones are intended to be calm, in-app moments rather than push notifications. The proposed default check-ins are 50%, 75%, 90%, and 100% of the daily allowance, shown at an appropriate next interaction. Push notifications are not part of the current implementation and should remain optional if introduced later.
 
 ## Current implementation
 
 | Capability | Status |
 | --- | --- |
-| Android project and Compose interface | Available |
-| Daily allowance setting saved locally | Available |
-| Accent colour selection saved locally | Available |
-| Shortcut to Android usage-access settings | Available |
-| Monitored-app selection | Available |
-| Foreground usage tracking | Available; requires real-device validation |
-| Token deduction and daily reset | Available |
-| Milestone notifications | Recorded locally; notifications pending |
-| Blocking when allowance is exhausted | Available; OEM validation pending |
-| Usage insights and seven-day history | Available |
-| Privacy, accessibility, and release review | Planned |
+| Android project and Compose interface | Implemented |
+| First-run setup and local allowance setting | Implemented |
+| Selected-app picker | Implemented |
+| Accessibility-based foreground app detection | Implemented; real-device validation pending |
+| Foreground-time accounting | Implemented with local aggregate counters; reconciliation and edge-case testing pending |
+| Daily allowance and local-day reset | Implemented; clock and timezone edge cases need testing |
+| Pause overlay and five-minute continuation | Implemented; OEM and Android-version validation pending |
+| Home summary and seven-day usage view | Implemented |
+| Milestone moments and notifications | Not implemented |
+| Data export, privacy controls and accessibility review | Planned |
+| Signed release and release-policy review | Planned |
 
-TOVI asks the user to enable its Accessibility service manually in Android Settings. The service detects foreground changes for selected apps, records foreground seconds locally, and converts each accumulated minute into one token. The pause overlay appears when a selected app opens. A configurable 3-, 5-, or 10-second pause precedes a five-minute continuation while tokens remain; the intervention includes a gentle breathing animation, and time on the pause screen itself is not counted. When the allowance reaches zero, the selected app is paused with no continue option until the next local-day reset. Home and Insights read the local usage ledger. The service does not inspect screen text, messages, photos, or keystrokes. Android OEM background restrictions and overlay behavior still require real-device validation.
+TOVI asks the user to enable its Accessibility service manually in Android Settings. The service listens for foreground window changes for the selected apps and displays its pause overlay. Its accessibility configuration has canRetrieveWindowContent set to false; it does not request access to window text or interactive content. TOVI does not read messages, photos, screen text or keystrokes.
+
+Current usage totals are stored locally in SharedPreferences, grouped by local day and package. This is an early implementation, not yet the append-only session ledger or UsageStats reconciliation model needed for stronger recovery and clock-change handling. The service uses Android's accessibility overlay type, so behaviour must be tested on real devices, Android versions and OEM battery-management implementations before any reliability claim is made.
 
 ## Technology
 
@@ -57,7 +59,9 @@ TOVI asks the user to enable its Accessibility service manually in Android Setti
 - JDK: 17
 - Gradle build through GitHub Actions
 
-The app currently retains its original Android application ID, `com.limity.app`, so existing development installs can be updated without changing package identity during the brand transition. The visible product name is TOVI.
+The Android application ID remains com.limity.app during development so existing test installations can continue to receive updates. A final TOVI application ID should be chosen before the first public release; changing it later would make it a separate Android app and require users to reinstall.
+
+The app does not currently need network access for its core functionality. The Android manifest does not declare the INTERNET permission.
 
 ## Build the Android app
 
@@ -67,7 +71,7 @@ Open the repository in Android Studio and allow Gradle to sync. To build a debug
 gradle --no-daemon assembleDebug
 ```
 
-Every push to `main` and manual workflow run triggers the Android build. Download the **TOVI-debug** artifact from the successful GitHub Actions run.
+Every push to main and manual workflow run triggers the Android build. Pull requests targeting main also run the build. Download the **TOVI-debug** artifact from a successful GitHub Actions run.
 
 ## Official website and downloads
 
@@ -81,22 +85,22 @@ The website's download centre reads the public GitHub Releases feed. It shows pu
 
 ## Development roadmap
 
-1. Implement reliable foreground-app usage tracking.
-2. Build the token engine, daily reset, and app-selection experience.
-3. Add milestone notifications and transparent, user-authorized blocking.
-4. Test on real devices, including Android 16 and common OEM battery restrictions.
-5. Complete privacy, accessibility, and distribution-policy reviews.
-6. Prepare the first signed release, then evaluate the iOS approach using Apple's supported Screen Time APIs.
+1. Make foreground tracking resilient to screen-off, process death, midnight rollover, clock changes and OEM background restrictions.
+2. Evaluate UsageStats reconciliation and move from aggregate counters to a recoverable session ledger.
+3. Improve onboarding, permission explanations and the protection-status experience.
+4. Refine the intervention, allowance-exhausted state and optional in-app milestones.
+5. Complete accessibility, privacy and Android distribution-policy reviews.
+6. Prepare a signed release, then evaluate the iOS approach using Apple's supported Screen Time APIs.
 
 ## Brand system
 
 - **Name:** TOVI
 - **Tagline:** Time, on your terms.
-- **Primary type:** Manrope
-- **Secondary type:** DM Sans
-- **Midnight Forest:** `#101512`
-- **Deep Sage:** `#1B2821`
-- **Living Green:** `#83C99D`
+- **Forest charcoal:** #17211B
+- **Muted sage:** #526B59
+- **Warm orange accent:** #F0923F
+- **Colour balance:** 60-30-10; orange is reserved for emphasis and actions.
+- **Typography:** final bundled app font pairing is still to be decided.
 
 ---
 
