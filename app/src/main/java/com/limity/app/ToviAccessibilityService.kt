@@ -28,6 +28,7 @@ class ToviAccessibilityService : AccessibilityService() {
     private var allowedUntil = 0L
     private var selectedPackages: Set<String> = emptySet()
     private var sessionStartedAt = 0L
+    private var sessionWallClockStartedAt = 0L
     private var sessionPackage: String? = null
     private var sessionDay = ""
     private var lastPromptDay = ""
@@ -62,15 +63,17 @@ class ToviAccessibilityService : AccessibilityService() {
         if (pkg !in selectedPackages) {
             sessionPackage = null
             sessionStartedAt = 0L
+            sessionWallClockStartedAt = 0L
             lastIntervenedPackage = null
             allowedUntil = 0L
             removeIntervention()
             return
         }
 
-        if (sessionPackage != pkg) {
+        if (sessionPackage != pkg || sessionStartedAt == 0L) {
             sessionPackage = pkg
             sessionStartedAt = SystemClock.elapsedRealtime()
+            sessionWallClockStartedAt = System.currentTimeMillis()
         }
         if (lastIntervenedPackage != pkg && overlay == null) {
             lastIntervenedPackage = pkg
@@ -96,8 +99,10 @@ class ToviAccessibilityService : AccessibilityService() {
         val now = SystemClock.elapsedRealtime()
         val elapsed = ((now - sessionStartedAt) / 1000L).coerceAtLeast(0L)
         if (elapsed > 0L) {
-            UsageLedger.addForegroundSeconds(this, pkg, elapsed)
+            val intervalEndWallClock = sessionWallClockStartedAt + elapsed * 1000L
+            UsageLedger.addForegroundInterval(this, pkg, sessionWallClockStartedAt, intervalEndWallClock)
             sessionStartedAt = now
+            sessionWallClockStartedAt = intervalEndWallClock
             maybeShowMilestone()
             if (UsageLedger.remainingTokens(this) <= 0) {
                 allowedUntil = 0L
@@ -124,6 +129,7 @@ class ToviAccessibilityService : AccessibilityService() {
         if (overlay != null) return
         // Time spent reading the pause screen is not counted as app usage.
         sessionStartedAt = 0L
+        sessionWallClockStartedAt = 0L
         val appName = try {
             packageManager.getApplicationLabel(packageManager.getApplicationInfo(pkg, 0)).toString()
         } catch (_: Exception) { "this app" }
@@ -187,6 +193,7 @@ class ToviAccessibilityService : AccessibilityService() {
                 allowedUntil = SystemClock.elapsedRealtime() + 5 * 60 * 1000L
                 sessionPackage = pkg
                 sessionStartedAt = SystemClock.elapsedRealtime()
+                sessionWallClockStartedAt = System.currentTimeMillis()
                 handler.postDelayed({
                     flushForegroundTime()
                     if (activePackage == pkg && overlay == null) {
