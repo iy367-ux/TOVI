@@ -27,9 +27,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-private val Bg = Color(0xFF101512)
-private val Panel = Color(0xFF1B2821)
-private val Panel2 = Color(0xFF26352C)
+private val Bg = Color(0xFF17211B)
+private val Panel = Color(0xFF26352C)
+private val Panel2 = Color(0xFF526B59)
+private val Accent = Color(0xFFF0923F)
 private val Ink = Color(0xFFF2F4EF)
 private val Muted = Color(0xFFB5C2B8)
 private data class AppEntry(val pkg: String, val name: String)
@@ -53,20 +54,21 @@ class MainActivity : ComponentActivity() {
             var enabled by remember { mutableStateOf(serviceOn()) }
             var chosen by remember { mutableStateOf(prefs.getStringSet("selected_apps", emptySet())?.toSet() ?: emptySet()) }
             var limit by remember { mutableFloatStateOf(prefs.getInt("daily_tokens", 120).toFloat()) }
-            var accentIndex by remember { mutableIntStateOf(prefs.getInt("accent_index", 0)) }
             var pauseSeconds by remember { mutableIntStateOf(prefs.getInt("pause_seconds", 5)) }
             var tab by remember { mutableIntStateOf(0) }
             var refreshKey by remember { mutableIntStateOf(0) }
             DisposableEffect(lifecycle) {
                 val observer = LifecycleEventObserver { _, event ->
-                    if (event == Lifecycle.Event.ON_RESUME) refreshKey++
+                    if (event == Lifecycle.Event.ON_RESUME) {
+                        enabled = serviceOn()
+                        refreshKey++
+                    }
                 }
                 lifecycle.addObserver(observer)
                 onDispose { lifecycle.removeObserver(observer) }
             }
-            val accents = listOf(Color(0xFF83C99D), Color(0xFF6BA9E8), Color(0xFFA78BFA), Color(0xFFF0A36B), Color(0xFFE88BA5), Color(0xFF55C8BE))
-            val accent = accents[accentIndex.coerceIn(0, accents.lastIndex)]
-            MaterialTheme(colorScheme = darkColorScheme(primary = accent, background = Bg, surface = Panel, onSurface = Ink, secondary = Muted)) {
+            val accent = Accent
+            MaterialTheme(colorScheme = darkColorScheme(primary = Accent, onPrimary = Bg, background = Bg, surface = Panel, onSurface = Ink, secondary = Panel2, onSecondary = Ink)) {
                 if (setup) {
                     SetupFlow(
                         apps = apps, chosen = chosen, onToggle = { pkg -> chosen = if (pkg in chosen) chosen - pkg else chosen + pkg },
@@ -97,9 +99,17 @@ class MainActivity : ComponentActivity() {
                             0 -> HomePage(prefs.getInt("tokens_remaining", limit.toInt()), prefs.getInt("daily_tokens", limit.toInt()), UsageLedger.totalSeconds(this@MainActivity), UsageLedger.selectedAppSeconds(this@MainActivity, chosen), accent, apps.filter { it.pkg in chosen }, Modifier.padding(pad), refreshKey)
                             1 -> AppsPage(apps.filter { it.pkg in chosen }, { setup = true }, Modifier.padding(pad))
                             2 -> InsightsPage(this@MainActivity, chosen, apps, refreshKey, Modifier.padding(pad))
-                            else -> SettingsPage(limit, accentIndex, accents, pauseSeconds, { limit = it; prefs.edit().putInt("daily_tokens", it.toInt()).apply() },
-                                { accentIndex = it; prefs.edit().putInt("accent_index", it).apply() },
-                                { pauseSeconds = it; prefs.edit().putInt("pause_seconds", it).apply() }, Modifier.padding(pad))
+                            else -> SettingsPage(
+                                limit = limit,
+                                pauseSeconds = pauseSeconds,
+                                serviceEnabled = enabled,
+                                heartbeatAt = prefs.getLong("service_heartbeat_at", 0L),
+                                selectedCount = chosen.size,
+                                onLimit = { limit = it; prefs.edit().putInt("daily_tokens", it.toInt()).apply() },
+                                onPauseSeconds = { pauseSeconds = it; prefs.edit().putInt("pause_seconds", it).apply() },
+                                modifier = Modifier.padding(pad),
+                                refreshKey = refreshKey
+                            )
                         }
                     }
                 }
@@ -115,12 +125,13 @@ private fun SetupFlow(
     onEnable: () -> Unit, onCheck: () -> Unit, onFinish: () -> Unit
 ) {
     var step by remember { mutableIntStateOf(0) }
+    var privacyAccepted by remember { mutableStateOf(false) }
     Column(Modifier.fillMaxSize().background(Bg).statusBarsPadding().verticalScroll(rememberScrollState()).padding(22.dp),
         verticalArrangement = Arrangement.spacedBy(17.dp)) {
         Text("tovi.", color = Ink, fontSize = 34.sp, fontWeight = FontWeight.ExtraBold)
         Text("TIME, ON YOUR TERMS.", color = Muted, fontSize = 10.sp, letterSpacing = 2.sp)
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            repeat(3) { i -> Box(Modifier.weight(1f).height(4.dp).clip(CircleShape).background(if (i <= step) Color(0xFF83C99D) else Panel2)) }
+            repeat(3) { i -> Box(Modifier.weight(1f).height(4.dp).clip(CircleShape).background(if (i <= step) Accent else Panel2)) }
         }
         when (step) {
             0 -> {
@@ -134,7 +145,7 @@ private fun SetupFlow(
             1 -> {
                 Text("What distracts\nyou most?", color = Ink, fontSize = 30.sp, lineHeight = 36.sp, fontWeight = FontWeight.Bold)
                 Text("Select the apps where you'd like TOVI to step in. You can change this list later.", color = Muted, fontSize = 14.sp, lineHeight = 21.sp)
-                Text("${chosen.size} apps selected", color = Color(0xFF83C99D), fontWeight = FontWeight.SemiBold)
+                Text("${chosen.size} apps selected", color = Accent, fontWeight = FontWeight.SemiBold)
                 Column(Modifier.heightIn(max = 390.dp).clip(RoundedCornerShape(18.dp)).background(Panel).verticalScroll(rememberScrollState())) {
                     apps.forEach { app ->
                         Row(Modifier.fillMaxWidth().clickable { onToggle(app.pkg) }.padding(horizontal = 14.dp, vertical = 9.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -156,10 +167,18 @@ private fun SetupFlow(
                 Text("Make it yours.", color = Ink, fontSize = 30.sp, fontWeight = FontWeight.Bold)
                 Text("Set your daily allowance, then enable TOVI's intervention service. Android needs your permission before TOVI can notice when a selected app opens.", color = Muted, fontSize = 14.sp, lineHeight = 21.sp)
                 SetupCard("Your daily allowance", "1 token = 1 minute in an app you selected.")
-                Text("${limit.toInt()} tokens per day", color = Ink, fontSize = 25.sp, fontWeight = FontWeight.Bold)
+                Text("${limit.toInt()} minutes per day", color = Ink, fontSize = 25.sp, fontWeight = FontWeight.Bold)
                 Slider(value = limit, onValueChange = onLimit, valueRange = 15f..600f, steps = 38)
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text("15 min", color = Muted, fontSize = 11.sp); Text("10 hours", color = Muted, fontSize = 11.sp)
+                }
+                SetupCard(
+                    "Accessibility disclosure",
+                    "TOVI receives foreground-app change events and package names so it can recognise when a selected app opens and show your pause. Only selected-app usage is stored on this device. TOVI does not read app text, messages, photos or keystrokes."
+                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(checked = privacyAccepted, onCheckedChange = { privacyAccepted = it })
+                    Text("I understand and agree to this use.", color = Ink, fontSize = 13.sp)
                 }
                 Card(colors = CardDefaults.cardColors(containerColor = Panel), shape = RoundedCornerShape(18.dp)) {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -167,12 +186,12 @@ private fun SetupFlow(
                         Text("TOVI uses Android Accessibility only to detect which app is in the foreground and show its pause screen. It does not inspect messages, photos or what you type.", color = Muted, fontSize = 12.sp, lineHeight = 18.sp)
                         Button(onClick = onEnable, modifier = Modifier.fillMaxWidth()) { Text("Open Accessibility settings") }
                         OutlinedButton(onClick = onCheck, modifier = Modifier.fillMaxWidth()) { Text("I've enabled it — check again") }
-                        Text(if (serviceEnabled) "✓ Intervention service enabled" else "Not enabled yet", color = if (serviceEnabled) Color(0xFF83C99D) else Color(0xFFE4B17B), fontSize = 12.sp)
+                        Text(if (serviceEnabled) "✓ Intervention service enabled" else "Not enabled yet", color = if (serviceEnabled) Panel2 else Accent, fontSize = 12.sp)
                     }
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     OutlinedButton(onClick = { step = 1 }, modifier = Modifier.weight(1f).height(52.dp)) { Text("Back") }
-                    Button(onClick = onFinish, enabled = serviceEnabled && chosen.isNotEmpty(), modifier = Modifier.weight(1f).height(52.dp)) { Text("Start TOVI  →") }
+                    Button(onClick = onFinish, enabled = serviceEnabled && chosen.isNotEmpty() && privacyAccepted, modifier = Modifier.weight(1f).height(52.dp)) { Text("Start TOVI  →") }
                 }
             }
         }
@@ -212,7 +231,7 @@ private fun HomePage(
                 Text("TIME LEFT TODAY", color = Muted, fontSize = 10.sp, letterSpacing = 1.5.sp)
                 Row(verticalAlignment = Alignment.Bottom) {
                     Text("$remaining", color = Ink, fontSize = 43.sp, fontWeight = FontWeight.Bold)
-                    Spacer(Modifier.width(8.dp)); Text("tokens", color = accent, modifier = Modifier.padding(bottom = 7.dp))
+                    Spacer(Modifier.width(8.dp)); Text("min", color = accent, modifier = Modifier.padding(bottom = 7.dp))
                 }
                 LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth().height(7.dp).clip(CircleShape), color = accent, trackColor = Panel2)
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -265,7 +284,7 @@ private fun InsightsPage(
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         Text(day, color = Muted, fontSize = 11.sp, modifier = Modifier.width(34.dp))
                         Box(Modifier.weight(1f).height(10.dp).clip(CircleShape).background(Panel2)) {
-                            Box(Modifier.fillMaxWidth((seconds.toFloat() / maxSeconds).coerceIn(0f, 1f)).fillMaxHeight().clip(CircleShape).background(Color(0xFF83C99D)))
+                            Box(Modifier.fillMaxWidth((seconds.toFloat() / maxSeconds).coerceIn(0f, 1f)).fillMaxHeight().clip(CircleShape).background(Accent))
                         }
                         Text("${seconds / 60}m", color = Ink, fontSize = 11.sp, modifier = Modifier.width(38.dp))
                     }
@@ -279,7 +298,7 @@ private fun InsightsPage(
             val minutes = ((appSeconds[pkg] ?: 0L) / 60L).toInt()
             Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(Panel).padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text(name, color = Ink, modifier = Modifier.weight(1f))
-                Text("$minutes min", color = Color(0xFF83C99D), fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
+                Text("$minutes min", color = Accent, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
             }
         }
         SetupCard("A note about your data", "Your usage history is stored locally on this device. TOVI records which selected app is in the foreground and for how long; it does not read app content.")
@@ -293,9 +312,9 @@ private fun AppsPage(apps: List<AppEntry>, onEdit: () -> Unit, modifier: Modifie
         Text("TOVI will pause you when you open these apps.", color = Muted)
         apps.forEach { app ->
             Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(Panel).padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text(app.name.take(1).uppercase(), color = Color(0xFF83C99D), fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                Text(app.name.take(1).uppercase(), color = Accent, fontSize = 17.sp, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.width(12.dp)); Text(app.name, color = Ink, modifier = Modifier.weight(1f))
-                Text("ON", color = Color(0xFF83C99D), fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                Text("ON", color = Accent, fontSize = 10.sp, fontWeight = FontWeight.Bold)
             }
         }
         OutlinedButton(onClick = onEdit, modifier = Modifier.fillMaxWidth()) { Text("Change selected apps") }
@@ -313,15 +332,57 @@ private fun SimplePage(title: String, description: String, modifier: Modifier = 
 
 @Composable
 private fun SettingsPage(
-    limit: Float, selected: Int, accents: List<Color>, pauseSeconds: Int,
-    onLimit: (Float) -> Unit, onAccent: (Int) -> Unit,
-    onPauseSeconds: (Int) -> Unit, modifier: Modifier = Modifier
+    limit: Float,
+    pauseSeconds: Int,
+    serviceEnabled: Boolean,
+    heartbeatAt: Long,
+    selectedCount: Int,
+    onLimit: (Float) -> Unit,
+    onPauseSeconds: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+    refreshKey: Int = 0
 ) {
-    val names = listOf("Sage", "Blue", "Purple", "Orange", "Rose", "Teal")
+    val heartbeatFresh = heartbeatAt > 0L && System.currentTimeMillis() - heartbeatAt in 0L..45_000L
+    val healthTitle = when {
+        !serviceEnabled -> "Accessibility permission is off"
+        heartbeatFresh -> "Service recently checked in"
+        else -> "Service status needs checking"
+    }
+    val healthDetail = when {
+        !serviceEnabled -> "Enable TOVI in Android Accessibility settings. Until then, selected-app monitoring is not active."
+        heartbeatFresh -> "TOVI's monitoring service has checked in recently. This confirms the service is running, not that every usage event has been captured."
+        else -> "Android reports the permission as enabled, but TOVI has not received a recent service heartbeat. Reopen Accessibility settings and check that TOVI is enabled."
+    }
     Page(modifier) {
         Text("Settings", color = Ink, fontSize = 28.sp, fontWeight = FontWeight.Bold)
+        Text("PROTECTION HEALTH", color = Muted, fontSize = 10.sp, letterSpacing = 1.3.sp, fontWeight = FontWeight.Bold)
+        Card(colors = CardDefaults.cardColors(containerColor = Panel), shape = RoundedCornerShape(20.dp)) {
+            Column(Modifier.fillMaxWidth().padding(17.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+                    Box(Modifier.size(9.dp).clip(CircleShape).background(
+                        if (serviceEnabled && heartbeatFresh) Accent else Muted
+                    ))
+                    Text(healthTitle, color = Ink, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                }
+                Text(healthDetail, color = Muted, fontSize = 12.sp, lineHeight = 18.sp)
+                HorizontalDivider(color = Panel2.copy(alpha = .45f))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text("Accessibility permission", color = Muted, fontSize = 11.sp)
+                    Text(if (serviceEnabled) "Enabled" else "Off", color = Ink, fontSize = 11.sp, fontWeight = FontWeight.Medium)
+                }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text("Service heartbeat", color = Muted, fontSize = 11.sp)
+                    Text(if (heartbeatFresh) "Recent" else "Not confirmed", color = Ink, fontSize = 11.sp, fontWeight = FontWeight.Medium)
+                }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text("Selected apps", color = Muted, fontSize = 11.sp)
+                    Text("$selectedCount", color = Ink, fontSize = 11.sp, fontWeight = FontWeight.Medium)
+                }
+                Text("Battery optimisation and complete tracking accuracy are not yet verified here.", color = Muted, fontSize = 10.sp, lineHeight = 15.sp)
+            }
+        }
         SetupCard("Daily allowance", "1 token represents one minute of selected-app use.")
-        Text("${limit.toInt()} tokens per day", color = Ink, fontSize = 25.sp, fontWeight = FontWeight.Bold)
+        Text("${limit.toInt()} min per day", color = Ink, fontSize = 25.sp, fontWeight = FontWeight.Bold)
         Slider(value = limit, onValueChange = onLimit, valueRange = 15f..600f, steps = 38)
         Text("INTERVENTION PAUSE", color = Muted, fontSize = 11.sp, letterSpacing = 1.sp)
         SetupCard("Take a moment before deciding", "TOVI gives you a short pause before the continue option becomes available.")
@@ -329,15 +390,6 @@ private fun SettingsPage(
             listOf(3, 5, 10).forEach { seconds ->
                 FilterChip(selected = pauseSeconds == seconds, onClick = { onPauseSeconds(seconds) },
                     label = { Text("$seconds sec") }, modifier = Modifier.weight(1f))
-            }
-        }
-        Text("APP ACCENT COLOUR", color = Muted, fontSize = 11.sp, letterSpacing = 1.sp)
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            accents.forEachIndexed { i, color ->
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Box(Modifier.size(30.dp).clip(CircleShape).background(color).clickable { onAccent(i) })
-                    Text(names[i], color = Muted, fontSize = 9.sp)
-                }
             }
         }
     }
