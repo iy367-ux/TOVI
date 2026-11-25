@@ -124,3 +124,27 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--orange); outlin
   footer .brand { font-size: 17px; }
 }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+.logo-story { display: grid; grid-template-columns: .75fr 1.25fr; gap: 10%; align-items: center; background: var(--forest); }
+.logo-story-visual { display: flex; flex-direction: column; align-items: center; gap: 22px; }
+.logo-story-visual img { width: min(230px, 80%); height: auto; border-radius: 28%; }
+.logo-story-visual>span { color: var(--sage-light); font-size: 8px; font-weight: 700; letter-spacing: 1.4px; text-align: center; }
+.logo-story-copy h2 { margin: 25px 0 18px; font: 750 clamp(46px,6vw,68px)/1.04 var(--display); letter-spacing: -.065em; }
+.logo-story-intro { max-width: 560px; margin: 0 0 28px; color: var(--muted); font-size: 13px; line-height: 1.85; }
+.logo-meaning-list { border-top: 1px solid var(--line); }
+.logo-meaning-list article { display: grid; grid-template-columns: 34px 1fr; gap: 14px; padding: 17px 0; border-bottom: 1px solid var(--line); }
+.logo-meaning-list article>span { padding-top: 3px; color: var(--orange); font-size: 9px; }
+.logo-meaning-list h3 { margin: 0 0 5px; font: 700 15px var(--display); }
+.logo-meaning-list p { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.75; }
+
+@media (max-width: 800px) {
+ .logo-story { grid-template-columns: .55fr 1fr; gap: 7%; }
+ .logo-story-visual img { width: min(180px, 100%); }
+}
+@media (max-width: 560px) {
+ .logo-story { grid-template-columns: 1fr; gap: 36px; }
+ .logo-story-visual { flex-direction: row; justify-content: flex-start; }
+ .logo-story-visual img { width: 92px; }
+ .logo-story-visual>span { text-align: left; }
+ .logo-story-copy h2 { font-size: 48px; }
+}
