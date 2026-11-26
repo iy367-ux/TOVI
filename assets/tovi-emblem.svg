@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="TOVI emblem">
+  <g fill="none" stroke="#D5DDD6" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M31 17h25c18 0 29 12 29 29S74 75 56 75H44c-13 0-22-8-22-20"/>
+    <path d="M69 83H44c-18 0-29-12-29-29s11-29 29-29"/>
+  </g>
+  <path d="M42 39v22m16-22v22" stroke="#D87945" stroke-width="7" stroke-linecap="round"/>
+</svg>
