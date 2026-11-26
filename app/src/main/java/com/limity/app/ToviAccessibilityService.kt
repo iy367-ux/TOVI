@@ -46,8 +46,11 @@ class ToviAccessibilityService : AccessibilityService() {
         super.onServiceConnected()
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
         selectedPackages = prefs.getStringSet("selected_apps", emptySet())?.toSet() ?: emptySet()
+        val now = System.currentTimeMillis()
+        val previousHeartbeat = prefs.getLong("service_heartbeat_at", now - 24 * 60 * 60 * 1000L)
+        UsageStatsRecovery.recover(this, selectedPackages, previousHeartbeat, now)
         prefs.edit()
-            .putLong("service_started_at", System.currentTimeMillis())
+            .putLong("service_started_at", now)
             .putLong("service_heartbeat_at", System.currentTimeMillis())
             .apply()
         UsageLedger.resetIfNewDay(this)
