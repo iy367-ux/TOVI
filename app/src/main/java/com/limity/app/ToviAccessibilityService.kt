@@ -91,6 +91,7 @@ class ToviAccessibilityService : AccessibilityService() {
 
     override fun onInterrupt() {
         flushForegroundTime()
+        prefs.edit().putLong("service_heartbeat_at", System.currentTimeMillis()).apply()
         removeIntervention()
     }
 
@@ -98,7 +99,9 @@ class ToviAccessibilityService : AccessibilityService() {
         flushForegroundTime()
         removeIntervention()
         handler.removeCallbacksAndMessages(null)
-        prefs.edit().remove("service_heartbeat_at").apply()
+        // Preserve the last completed accounting boundary so recovery starts
+        // after the time already flushed to the ledger.
+        prefs.edit().putLong("service_heartbeat_at", System.currentTimeMillis()).apply()
         super.onDestroy()
     }
 
