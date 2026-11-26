@@ -122,3 +122,19 @@ a:focus-visible,button:focus-visible{outline-color:var(--green-deep)}
 .story-signoff span,
 .story-foot{color:#C0CCC2}
 .story-foot{border-color:rgba(213,221,214,.18)}
+
+
+/* The meaning behind the TOVI mark */
+.mark-story{background:#121A15;color:#D5DDD6}
+.mark-story .section-label{border-color:rgba(213,221,214,.18);color:#B9C6BC}
+.mark-grid{display:grid;grid-template-columns:.78fr 1.22fr;gap:12%;align-items:center;padding-top:68px}
+.mark-visual{min-height:330px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px}
+.mark-visual img{width:clamp(145px,17vw,205px);height:auto;filter:drop-shadow(0 18px 34px rgba(0,0,0,.2))}
+.mark-visual span{font-size:8px;letter-spacing:1.6px;color:#B9C6BC}
+.mark-copy{max-width:590px}
+.mark-copy .eyebrow{color:#D87945}
+.mark-copy h2{font:700 clamp(48px,5.6vw,74px)/1.04 var(--display);letter-spacing:-.085em;margin:22px 0 28px}
+.mark-copy h2 em{font-family:Georgia,serif;font-weight:400;letter-spacing:-.085em;color:#D87945}
+.mark-copy>p:not(.eyebrow){font-size:13px;line-height:1.95;color:#B9C6BC;max-width:540px}
+.mark-caption{display:block;margin-top:28px;padding-top:16px;border-top:1px solid rgba(213,221,214,.18);font:600 12px var(--display);color:#D5DDD6}
+@media(max-width:650px){.mark-grid{grid-template-columns:1fr;gap:28px;padding-top:40px}.mark-visual{min-height:210px}.mark-visual img{width:150px}.mark-copy h2{font-size:clamp(46px,11vw,62px)}}
