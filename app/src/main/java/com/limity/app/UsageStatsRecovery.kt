@@ -33,7 +33,11 @@ object UsageStatsRecovery {
         if (packages.isEmpty() || !hasUsageAccess(context) || nowMillis <= fromMillis) return
         val start = maxOf(fromMillis, nowMillis - MAX_RECOVERY_MILLIS)
         val manager = context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
-        val events = manager.queryEvents(start, nowMillis)
+        // Include a look-back window to discover an app that was already
+        // foreground at the recovery boundary; clip its recovered interval
+        // to start so previously accounted time is not replayed.
+        val eventQueryStart = (start - MAX_RECOVERY_MILLIS).coerceAtLeast(0L)
+        val events = manager.queryEvents(eventQueryStart, nowMillis)
         val event = UsageEvents.Event()
         val active = mutableMapOf<String, Long>()
 
