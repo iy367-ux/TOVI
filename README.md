@@ -101,3 +101,14 @@ The website's download centre reads the public GitHub Releases feed. It shows pu
 ---
 
 *Made for a more intentional everyday.*
+
+ 
+## Beyond the Android app
+
+TOVI is being imagined as a small ecosystem, not just a phone app. The following projects are **planned and not released**:
+
+- **TOVI Browser Extension & New Tab** — a browser companion with a highly customisable new-tab page, shortcuts, useful widgets and room for community-made themes. The goal is deep personalisation while keeping the interface calm and lightweight.
+- **Community Themes** — a future way to create, share and install visual themes across supported TOVI experiences. Theme publishing and installation will need clear permissions, safe defaults and compatibility checks.
+- **TOVI Kids Mode** — a distinct, more playful and age-appropriate experience, with friendly visuals, simple routines and parent-guided boundaries. It should feel welcoming and fun rather than like the standard TOVI interface with a different label.
+
+These are roadmap items. They are not available for download or public use yet, and their designs and scope may change as they are developed.
