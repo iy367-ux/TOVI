@@ -61,3 +61,24 @@ footer{background:var(--paper);color:#B9C6BC}
 .footer-top{color:var(--green-deep)}
 a:focus-visible,button:focus-visible{outline-color:var(--green-deep)}
 @media(max-width:650px){nav{background:var(--paper);border-color:var(--line)}}
+
+
+/* Hero emblem restoration — use TOVI's own mark, not a decorative tile. */
+.hero-aside{background:#526B59}
+.art-block,.art-small{display:none!important}
+.hero-emblem{
+  position:absolute;
+  width:clamp(150px,17vw,218px);
+  height:auto;
+  left:50%;top:46%;
+  transform:translate(-50%,-50%);
+  filter:drop-shadow(0 14px 28px rgba(18,26,21,.16));
+  z-index:1;
+}
+.art-ring{width:390px;height:390px;border-color:rgba(213,221,214,.34)}
+.art-ring:before,.art-ring:after{border-color:rgba(213,221,214,.22)}
+.art-word{z-index:2;color:#17211B}
+.art-side-note{z-index:2;color:rgba(240,244,238,.78)}
+.aside-top,.aside-bottom{color:rgba(240,244,238,.78)}
+@media(max-width:900px){.hero-emblem{width:clamp(145px,20vw,190px)}}
+@media(max-width:650px){.hero-emblem{width:155px;top:45%}.art-ring{width:300px;height:300px}}
