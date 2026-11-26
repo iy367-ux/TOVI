@@ -10,3 +10,54 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--green-deep);outline
 @media(max-width:650px){.site-header{height:70px;padding:0 6%}.brand{font-size:24px}.brand img{width:27px;height:27px}.header-link{display:none}.menu{display:block;font-size:11px;padding:10px}nav{display:none;position:absolute;top:69px;left:0;right:0;padding:23px 7%;background:var(--paper);border-bottom:1px solid var(--line);flex-direction:column;gap:21px}nav.open{display:flex}.hero{display:flex;flex-direction:column;align-items:stretch;min-height:auto;padding:122px 7% 78px;gap:42px}.hero-inner{padding:0}.hero h1{font-size:clamp(68px,15vw,92px);margin:30px 0}.hero-bottom{align-items:flex-start;flex-direction:column;gap:20px}.hero-aside{height:350px;margin:0 2px}.art-ring{width:290px;height:290px}.art-block{width:132px;height:132px}.art-block img{width:65px;height:65px}.art-word{font-size:42px}.hero-foot{left:7%;bottom:25px}.section{padding:78px 7%}.section-label{font-size:7px;gap:14px}.thinking-grid,.principle-intro{grid-template-columns:1fr;gap:26px;padding-top:42px}.section h2{font-size:clamp(50px,12vw,66px)}.thinking-copy{max-width:none}.margin-note{margin-top:40px}.principle-intro{padding-bottom:32px}.principle{grid-template-columns:30px 1fr 20px;gap:12px;padding:20px 0}.principle h3{font-size:16px}.principle p{grid-column:2;grid-row:2}.principle-mark{grid-column:3;grid-row:1}.story{grid-template-columns:1fr;gap:35px;padding-bottom:115px}.story-mark{width:54px;height:54px}.story-content h2{font-size:clamp(48px,11vw,62px)}.story-foot{left:7%;right:7%;bottom:25px;font-size:7px}footer{padding:22px 7%;flex-wrap:wrap}.footer-line{order:3;width:100%}}
 @media(max-width:370px){.hero h1{font-size:64px}.hero-aside{height:320px}.art-ring{width:260px;height:260px}.art-block{width:118px;height:118px}.section h2{font-size:47px}.principle{grid-template-columns:24px 1fr 16px;gap:9px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{transition-duration:.01ms!important}}
+
+
+/* TOVI — Forest & Ember palette */
+:root{--paper:#17211B;--paper-2:#526B59;--ink:#D5DDD6;--forest:#121A15;--green:#526B59;--green-deep:#D87945;--muted:#B9C6BC;--line:rgba(213,221,214,.18)}
+body{background:var(--paper);color:var(--ink)}
+.site-header{border-color:var(--line)}
+nav a,.header-link{color:#B9C6BC}
+nav a:hover,.header-link:hover,.header-link span{color:var(--green-deep)}
+.header-link{border-color:rgba(216,121,69,.65)}
+.menu{color:var(--ink)}
+.eyebrow,.eyebrow-rule{color:var(--green-deep);background-color:transparent}
+.eyebrow-rule{background:var(--green-deep)}
+.hero h1 em,.section h2 em{color:var(--green-deep)}
+.hero-copy{color:#B9C6BC}
+.text-link{border-color:var(--green-deep);color:var(--ink)}
+.text-link span,.hero-foot span:first-child{color:var(--green-deep)}
+.hero-aside{background:var(--green)}
+.aside-top,.aside-bottom{color:rgba(213,221,214,.8)}
+.art-ring{border-color:rgba(213,221,214,.3)}
+.art-ring:before,.art-ring:after{border-color:rgba(213,221,214,.2)}
+.art-block{background:var(--forest);box-shadow:15px 18px 0 rgba(18,26,21,.22)}
+.art-small{color:var(--green-deep)}
+.art-word{color:#D5DDD6}
+.art-side-note{color:rgba(213,221,214,.8)}
+.hero-foot{color:#AEBBB1}
+.foot-line{background:rgba(213,221,214,.45)}
+.section-label{color:#B9C6BC;border-color:var(--line)}
+.thinking{background:var(--forest);color:var(--ink)}
+.thinking .section-label{border-color:var(--line);color:#B9C6BC}
+.thinking h2 em{color:var(--green-deep)}
+.thinking-copy p{color:#B9C6BC}
+.thinking-copy .thinking-lead{color:var(--ink)}
+.margin-note{border-color:var(--line);color:#B9C6BC}
+.margin-note span{color:var(--green-deep)}
+.principles{background:var(--paper);color:var(--ink)}
+.principle-intro h2 em{color:var(--green-deep)}
+.principle-intro>p,.principle p{color:#B9C6BC}
+.principle-list,.principle{border-color:var(--line)}
+.principle-no,.principle-mark{color:var(--green-deep)}
+.story{background:var(--green);color:#121A15}
+.story .eyebrow{color:#121A15}
+.story-content h2 em{color:#D87945}
+.story-content>p:not(.eyebrow){color:#E0E7E0}
+.story-signoff{color:#121A15}
+.story-signoff span{color:#E0E7E0}
+.story-foot{border-color:rgba(213,221,214,.28);color:#E0E7E0}
+.story-mark{background:var(--green-deep)}
+footer{background:var(--paper);color:#B9C6BC}
+.footer-top{color:var(--green-deep)}
+a:focus-visible,button:focus-visible{outline-color:var(--green-deep)}
+@media(max-width:650px){nav{background:var(--paper);border-color:var(--line)}}
