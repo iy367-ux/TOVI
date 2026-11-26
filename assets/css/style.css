@@ -109,3 +109,16 @@ a:focus-visible,button:focus-visible{outline-color:var(--green-deep)}
 .hero-aside .hero-emblem{display:none!important}
 @media(max-width:900px){.hero-aside{height:420px}.hero-aside .hero-mascot{width:clamp(170px,24vw,220px)}}
 @media(max-width:650px){.hero-aside{height:270px;margin:0}.hero-aside .hero-mascot{width:178px}}
+
+
+/* Reduce the brightness of the sage story surface while keeping the palette intact. */
+.story{
+  background:#34483B;
+  color:#D5DDD6;
+}
+.story .eyebrow,
+.story-signoff{color:#D5DDD6}
+.story-content>p:not(.eyebrow),
+.story-signoff span,
+.story-foot{color:#C0CCC2}
+.story-foot{border-color:rgba(213,221,214,.18)}
