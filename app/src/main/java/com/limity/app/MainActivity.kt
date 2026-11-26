@@ -52,6 +52,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             var setup by remember { mutableStateOf(!prefs.getBoolean("setup_done", false)) }
             var enabled by remember { mutableStateOf(serviceOn()) }
+            var usageAccess by remember { mutableStateOf(UsageStatsRecovery.hasUsageAccess(this@MainActivity)) }
             var chosen by remember { mutableStateOf(prefs.getStringSet("selected_apps", emptySet())?.toSet() ?: emptySet()) }
             var limit by remember { mutableFloatStateOf(prefs.getInt("daily_tokens", 120).toFloat()) }
             var pauseSeconds by remember { mutableIntStateOf(prefs.getInt("pause_seconds", 5)) }
@@ -61,6 +62,7 @@ class MainActivity : ComponentActivity() {
                 val observer = LifecycleEventObserver { _, event ->
                     if (event == Lifecycle.Event.ON_RESUME) {
                         enabled = serviceOn()
+                        usageAccess = UsageStatsRecovery.hasUsageAccess(this@MainActivity)
                         refreshKey++
                     }
                 }
@@ -73,11 +75,13 @@ class MainActivity : ComponentActivity() {
                     SetupFlow(
                         apps = apps, chosen = chosen, onToggle = { pkg -> chosen = if (pkg in chosen) chosen - pkg else chosen + pkg },
                         limit = limit, onLimit = { limit = it }, serviceEnabled = enabled,
+                        usageAccessEnabled = usageAccess,
                         onEnable = { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) },
-                        onCheck = { enabled = serviceOn() },
+                        onEnableUsageAccess = { startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)) },
+                        onCheck = { enabled = serviceOn(); usageAccess = UsageStatsRecovery.hasUsageAccess(this@MainActivity) },
                         onFinish = {
                             enabled = serviceOn()
-                            if (enabled && chosen.isNotEmpty()) {
+                            if (enabled && usageAccess && chosen.isNotEmpty()) {
                                 prefs.edit().putBoolean("setup_done", true).putStringSet("selected_apps", chosen)
                                     .putInt("daily_tokens", limit.toInt()).putInt("tokens_remaining", limit.toInt()).apply()
                                 setup = false
@@ -103,6 +107,8 @@ class MainActivity : ComponentActivity() {
                                 limit = limit,
                                 pauseSeconds = pauseSeconds,
                                 serviceEnabled = enabled,
+                                usageAccessEnabled = usageAccess,
+                                onEnableUsageAccess = { startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)) },
                                 heartbeatAt = prefs.getLong("service_heartbeat_at", 0L),
                                 selectedCount = chosen.size,
                                 onLimit = { limit = it; prefs.edit().putInt("daily_tokens", it.toInt()).apply() },
@@ -122,7 +128,8 @@ class MainActivity : ComponentActivity() {
 private fun SetupFlow(
     apps: List<AppEntry>, chosen: Set<String>, onToggle: (String) -> Unit,
     limit: Float, onLimit: (Float) -> Unit, serviceEnabled: Boolean,
-    onEnable: () -> Unit, onCheck: () -> Unit, onFinish: () -> Unit
+    usageAccessEnabled: Boolean, onEnable: () -> Unit, onEnableUsageAccess: () -> Unit,
+    onCheck: () -> Unit, onFinish: () -> Unit
 ) {
     var step by remember { mutableIntStateOf(0) }
     var privacyAccepted by remember { mutableStateOf(false) }
@@ -189,9 +196,17 @@ private fun SetupFlow(
                         Text(if (serviceEnabled) "✓ Intervention service enabled" else "Not enabled yet", color = if (serviceEnabled) Panel2 else Accent, fontSize = 12.sp)
                     }
                 }
+                Card(colors = CardDefaults.cardColors(containerColor = Panel), shape = RoundedCornerShape(18.dp)) {
+                    Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                        Text("Usage recovery permission", color = Ink, fontWeight = FontWeight.SemiBold)
+                        Text("This lets TOVI recover selected-app time if Android stops its monitoring service. Usage events are processed on this device.", color = Muted, fontSize = 12.sp, lineHeight = 18.sp)
+                        Button(onClick = onEnableUsageAccess, modifier = Modifier.fillMaxWidth()) { Text("Open Usage Access settings") }
+                        Text(if (usageAccessEnabled) "✓ Usage Access enabled" else "Not enabled yet", color = if (usageAccessEnabled) Panel2 else Accent, fontSize = 12.sp)
+                    }
+                }
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     OutlinedButton(onClick = { step = 1 }, modifier = Modifier.weight(1f).height(52.dp)) { Text("Back") }
-                    Button(onClick = onFinish, enabled = serviceEnabled && chosen.isNotEmpty() && privacyAccepted, modifier = Modifier.weight(1f).height(52.dp)) { Text("Start TOVI  →") }
+                    Button(onClick = onFinish, enabled = serviceEnabled && usageAccessEnabled && chosen.isNotEmpty() && privacyAccepted, modifier = Modifier.weight(1f).height(52.dp)) { Text("Start TOVI  →") }
                 }
             }
         }
@@ -335,6 +350,8 @@ private fun SettingsPage(
     limit: Float,
     pauseSeconds: Int,
     serviceEnabled: Boolean,
+    usageAccessEnabled: Boolean,
+    onEnableUsageAccess: () -> Unit,
     heartbeatAt: Long,
     selectedCount: Int,
     onLimit: (Float) -> Unit,
@@ -379,6 +396,16 @@ private fun SettingsPage(
                     Text("$selectedCount", color = Ink, fontSize = 11.sp, fontWeight = FontWeight.Medium)
                 }
                 Text("Battery optimisation and complete tracking accuracy are not yet verified here.", color = Muted, fontSize = 10.sp, lineHeight = 15.sp)
+            }
+        }
+        Card(colors = CardDefaults.cardColors(containerColor = Panel), shape = RoundedCornerShape(20.dp)) {
+            Column(Modifier.fillMaxWidth().padding(17.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                Text("Usage recovery", color = Ink, fontWeight = FontWeight.SemiBold)
+                Text(if (usageAccessEnabled) "Usage Access is enabled. TOVI can recover selected-app intervals after a service interruption." else "Usage Access is off. TOVI cannot recover missed usage after Android stops its service.", color = Muted, fontSize = 12.sp, lineHeight = 18.sp)
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    Text(if (usageAccessEnabled) "Enabled" else "Not enabled", color = if (usageAccessEnabled) Accent else Muted, fontSize = 12.sp)
+                    OutlinedButton(onClick = onEnableUsageAccess) { Text("Manage") }
+                }
             }
         }
         SetupCard("Daily allowance", "1 token represents one minute of selected-app use.")
