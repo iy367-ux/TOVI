@@ -82,3 +82,30 @@ a:focus-visible,button:focus-visible{outline-color:var(--green-deep)}
 .aside-top,.aside-bottom{color:rgba(240,244,238,.78)}
 @media(max-width:900px){.hero-emblem{width:clamp(145px,20vw,190px)}}
 @media(max-width:650px){.hero-emblem{width:155px;top:45%}.art-ring{width:300px;height:300px}}
+
+
+/* Hero: let the original full-colour TOVI mark stand on its own. */
+.hero-aside{
+  height:480px;
+  min-height:0;
+  padding:0;
+  display:grid;
+  place-items:center;
+  overflow:visible;
+  background:transparent;
+}
+.hero-aside .hero-mascot{
+  display:block;
+  width:clamp(176px,20vw,250px);
+  height:auto;
+  filter:drop-shadow(0 22px 42px rgba(0,0,0,.22));
+}
+.hero-aside .aside-top,
+.hero-aside .aside-bottom,
+.hero-aside .aside-art,
+.hero-aside .art-ring,
+.hero-aside .art-word,
+.hero-aside .art-side-note,
+.hero-aside .hero-emblem{display:none!important}
+@media(max-width:900px){.hero-aside{height:420px}.hero-aside .hero-mascot{width:clamp(170px,24vw,220px)}}
+@media(max-width:650px){.hero-aside{height:270px;margin:0}.hero-aside .hero-mascot{width:178px}}
