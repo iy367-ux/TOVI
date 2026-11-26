@@ -2,7 +2,7 @@ name: TOVI Android CI
 
 on:
   push:
-    branches: [ "main", "claude-review-pass" ]
+    branches: [ "main", "claude-review-pass", "tovi/usage-reconciliation" ]
   pull_request:
     branches: [ "main" ]
     types: [opened, synchronize, reopened, ready_for_review]
